@@ -31,7 +31,7 @@ TICKETS = [
         "email": "jason.santos@example.com",
         "mobile_num": "01234567890",
         "service_id": 1,
-        "assigned_to": "Counter 4",
+        "assigned_to": "Counter 1",
         "status": "called",
         "joined_at": datetime(2026, 10, 26, 2, 5),
     },
@@ -129,8 +129,7 @@ def ticket(ticket_id):
     if t is None:
         abort(404)
     ahead = [x for x in TICKETS
-             if x["service_id"] == t["service_id"]
-             and x["status"] == "waiting"
+             if x["status"] == "waiting"
              and x["number"] < t["number"]]
     service = next(s for s in SERVICES if s["id"] == t["service_id"])
     return render_template("ticket.html", ticket=t, service=service,ahead=len(ahead), now=datetime.now())
@@ -212,6 +211,18 @@ def staff_action(ticket_id, action):
     flash(f"Ticket #{ticket_id} marked {new_status}.", "info")
     done = None if new_status == "called" else ticket_id
     return redirect(url_for("staff_dashboard", done=done))
+
+
+@app.get("/queue/<int:ticket_id>/status.json")
+def ticket_status(ticket_id):
+    t = next((t for t in TICKETS if t["number"] == ticket_id), None)
+    if t is None:
+        abort(404)
+    ahead = sum(1 for x in TICKETS
+                if x["status"] == "waiting"
+                and x["number"] < t["number"])
+    return {"status": t["status"], "ahead": ahead,
+            "assigned_to": t["assigned_to"]}
 
 
 @app.route("/hello")
