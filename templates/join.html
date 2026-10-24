@@ -1,20 +1,76 @@
 {% extends "base.html" %}
-
 {% block title %}Join the queue · SignalQ{% endblock %}
 
 {% block content %}
-  <h2>Join the queue</h2>
+<div class="row justify-content-center">
+  <div class="col-12 col-md-8 col-lg-6">
+    <div class="card shadow-sm">
+      <div class="card-body p-4 p-md-5">
 
-  {% if error %}
-    <p class="error">{{ error }}</p>
-  {% endif %}
+        <div class="text-center mb-4">
+          <h1 class="h3 fw-bold mb-1">Join the Queue</h1>
+          <p class="mb-0">Fill out your details to get in line.</p>
+        </div>
 
-  {# method="post" sends the form to the same URL as a POST request #}
-  <form method="post" class="join-form">
-    <label for="name">Your name</label>
-    <input id="name" name="name" type="text" autofocus>
-    <button type="submit">Get a ticket</button>
-  </form>
+        <form method="post" action="{{ url_for('join') }}" novalidate id="join-form">
 
-  <p><a href="{{ url_for('index') }}">&larr; Back to the queue</a></p>
+          <div class="mb-3">
+            <label for="name" class="form-label fw-semibold">Full Name <span aria-hidden="true">*</span></label>
+            <input id="name" name="name" type="text" autocomplete="name" required
+                   placeholder="John Doe"
+                   class="form-control {% if errors and errors.name %}is-invalid{% endif %}"
+                   value="{{ form.get('name', '') }}"
+                   {% if errors and errors.name %}aria-describedby="name-error"{% endif %}>
+            {% if errors and errors.name %}
+              <div id="name-error" class="invalid-feedback">{{ errors.name }}</div>
+            {% endif %}
+          </div>
+
+          <div class="mb-3">
+            <label for="mobile_num" class="form-label fw-semibold">Mobile Number <span aria-hidden="true">*</span></label>
+            <input id="mobile_num" name="mobile_num" type="tel" inputmode="tel" autocomplete="tel" required
+                   placeholder="+63 (Phone Number)"
+                   class="form-control {% if errors and errors.mobile_num %}is-invalid{% endif %}"
+                   value="{{ form.get('mobile_num', '') }}"
+                   {% if errors and errors.mobile_num %}aria-describedby="mobile-error"{% endif %}>
+            {% if errors and errors.mobile_num %}
+              <div id="mobile-error" class="invalid-feedback">{{ errors.mobile_num }}</div>
+            {% endif %}
+          </div>
+
+          <div class="mb-3">
+            <label for="email" class="form-label fw-semibold">Email Address <span class="fw-normal text-body-secondary">(optional)</span></label>
+            <input id="email" name="email" type="email" autocomplete="email"
+                   placeholder="john.doe@example.com"
+                   class="form-control {% if errors and errors.email %}is-invalid{% endif %}"
+                   value="{{ form.get('email', '') }}"
+                   {% if errors and errors.email %}aria-describedby="email-error"{% endif %}>
+            {% if errors and errors.email %}
+              <div id="email-error" class="invalid-feedback">{{ errors.email }}</div>
+            {% endif %}
+          </div>
+
+          <div class="mb-4">
+            <label for="service_id" class="form-label fw-semibold">Service Required <span aria-hidden="true">*</span></label>
+            <select id="service_id" name="service_id" required
+                    class="form-select {% if errors and errors.service_id %}is-invalid{% endif %}"
+                    {% if errors and errors.service_id %}aria-describedby="service-error"{% endif %}>
+              <option value="">Select Service</option>
+              {% for s in services %}
+                <option value="{{ s.id }}"
+                  {% if form.get('service_id') == s.id|string %}selected{% endif %}>{{ s.name }}</option>
+              {% endfor %}
+            </select>
+            {% if errors and errors.service_id %}
+              <div id="service-error" class="invalid-feedback">{{ errors.service_id }}</div>
+            {% endif %}
+          </div>
+
+          <button type="submit" class="btn btn-primary w-100">Get ticket</button>
+        </form>
+
+      </div>
+    </div>
+  </div>
+</div>
 {% endblock %}

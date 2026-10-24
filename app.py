@@ -5,6 +5,7 @@ Run it with:
 then open http://127.0.0.1:5000
 """
 from flask import Flask, abort, flash, redirect, render_template, request, url_for
+import re
 
 app = Flask(__name__)
 app.secret_key = "dev-only-change-me"
@@ -67,13 +68,57 @@ def ticket(ticket_id):
     abort(404)  # no ticket with that number
 
 
-@app.route("/join")
+@app.get("/join")
 def join_form():
-    return render_template("join.html")
+    return render_template("join.html", services=SERVICES, form={})
+
+
+@app.post("/join")
+def join():
+    form = request.form
+    name = form.get("name", "").strip()
+    mobile_num = form.get("mobile_num", "").strip()
+    email = form.get("email", "").strip().lower()
+    service_id = form.get("service_id", type=int)
+
+    errors = {}
+    if not name:
+        errors["name"] = "Enter your name."
+
+    digits = re.sub(r"[\s-]", "", mobile_num)  # allow spaces and dashes
+    if not mobile_num:
+        errors["mobile_num"] = "Enter your mobile number."
+    elif not re.fullmatch(r"\+?\d{10,13}", digits):
+        errors["mobile_num"] = "Enter a valid mobile number, like 09171234567."
+
+    if email and not re.fullmatch(r"[^@\s]+@[^@\s]+\.[^@\s]+", email):
+        errors["email"] = "Enter a valid email address, or leave it blank."
+
+    if service_id not in [s["id"] for s in SERVICES]:
+        errors["service_id"] = "Choose a service."
+
+    if errors:
+        flash("Please fix the highlighted fields.", "danger")
+        return render_template("join.html", services=SERVICES, form=form, errors=errors), 400
+
+    number = TICKETS[-1]["number"] + 1 if TICKETS else 1
+    TICKETS.append({
+        "number": number,
+        "name": name,
+        "email": email,
+        "mobile_num": digits,
+        "service_id": service_id,
+        "assigned_to": "Pending",
+        "status": "Waiting",
+    })
+    flash(f"You joined the queue. Your ticket is #{number}.", "success")
+    return redirect(url_for("ticket", ticket_id=number))
+
 
 @app.route("/staff")
 def staff_dashboard():
     return "Staff dashboard coming soon"
+
 
 @app.route("/hello")
 def hello():
