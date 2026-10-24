@@ -164,3 +164,176 @@ footer {
   .status-pill    { padding: 0.4rem 1rem; }
   .ticket-details { padding: 2rem 1.5rem; }
 }
+
+/* staff dashboard */
+.btn-outline-primary {
+  --bs-btn-color: var(--primary);
+  --bs-btn-border-color: var(--primary);
+  --bs-btn-hover-bg: var(--primary);
+  --bs-btn-hover-border-color: var(--primary);
+  --bs-btn-active-bg: var(--primary);
+  --bs-btn-active-border-color: var(--primary);
+  --bs-btn-disabled-color: var(--neutral);
+  --bs-btn-disabled-border-color: var(--neutral);
+  --bs-btn-focus-shadow-rgb: 2, 132, 199;
+}
+
+.staff-card {
+  --bs-card-bg: var(--white);
+  --bs-card-border-width: 0;
+  border-radius: 12px;
+}
+.staff-card-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--primary);
+}
+.serving-title {
+  padding-bottom: 0.75rem;
+  margin-bottom: 1rem;
+  border-bottom: 1px solid var(--bs-border-color);
+}
+
+/* currently serving (phone: stacked) */
+.serving { display: grid; gap: 1rem; }
+
+.serving-ticket {
+  padding: 1rem 1.5rem;
+  border: 1px solid var(--bs-border-color);
+  border-radius: 8px;
+  background: var(--bs-body-bg);
+  text-align: center;
+}
+.serving-ticket-number {
+  display: block;
+  font-size: 2rem;
+  line-height: 1.2;
+}
+.serving-number { margin: 0; font-size: 1.125rem; font-weight: 600; }
+.serving-name {
+  margin: 0;
+  font-size: clamp(1.5rem, 6vw, 2rem);
+  font-weight: 700;
+  line-height: 1.15;
+}
+.serving-hint { margin: 0.5rem 0 0; color: var(--secondary); }
+
+.serving-details {
+  display: grid;
+  gap: 0.125rem;
+  margin: 0.75rem 0 0;
+  font-size: 0.9375rem;
+}
+.serving-details > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+}
+.serving-details dt { font-weight: 400; color: var(--secondary); }
+.serving-details dd { margin: 0; font-weight: 500; text-align: right; }
+
+.serving-actions { display: flex; gap: 0.5rem; }
+.serving-actions form { flex: 1; }
+
+/* waiting queue */
+.queue-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+.queue-filters {
+  display: flex;
+  flex: 1 1 100%;
+  flex-direction: row-reverse;   /* phone: select on the left, search on the right */
+  gap: 0.5rem;
+}
+.queue-filters .form-control { flex: 1 1 auto; min-width: 0; }
+.queue-filters .form-select { flex: 0 0 auto; width: auto; max-width: 50%; }
+
+/* laptop table: bordered header row, no row lines */
+.queue-table {
+  border-collapse: separate;
+  border-spacing: 0;
+}
+.queue-table thead th {
+  padding: 0.5rem 0.75rem;
+  background: var(--bs-body-bg);
+  border: 1px solid var(--bs-border-color);
+  border-width: 1px 0;
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--secondary);
+}
+.queue-table thead th:first-child {
+  border-left-width: 1px;
+  border-radius: 8px 0 0 8px;
+}
+.queue-table thead th:last-child {
+  border-right-width: 1px;
+  border-radius: 0 8px 8px 0;
+}
+.queue-table tbody th,
+.queue-table tbody td {
+  padding: 0.85rem 0.75rem;
+  font-weight: 600;
+}
+.queue-table th:last-child,
+.queue-table td:last-child { width: 20rem; }
+.queue-table .btn { --bs-btn-bg: var(--bs-body-bg); }
+
+.status-pill.status-sm {
+  padding: 0.25rem 0.6rem;
+  border-width: 1px;
+  font-size: 0.75rem;
+}
+
+/* phone queue rows */
+.queue-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 0.75rem;
+  padding: 0.75rem 1rem;
+  border-radius: 12px;
+  background: var(--white);
+}
+.queue-item-number { font-weight: 600; }
+.queue-item-info { flex: 1; min-width: 0; font-size: 0.9375rem; }
+.queue-item form { flex: 0 0 auto; }
+
+/* laptop and up */
+@media (min-width: 768px) {
+  .serving {
+    grid-template-columns: auto 1fr 200px;
+    align-items: center;
+    gap: 1.5rem;
+  }
+  .serving-details {
+    grid-auto-flow: column;
+    grid-template-rows: repeat(2, auto);
+    column-gap: 2rem;
+    width: fit-content;
+  }
+  .serving-actions { flex-direction: column; }
+
+  .queue-filters { flex: 0 0 auto; flex-direction: row; }   /* laptop: search, then select */
+  .queue-filters .form-control { flex: 0 0 220px; }
+  .queue-filters .form-select { max-width: 200px; }
+}
+
+.row-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+.row-actions form { flex: 1; }
+
+.queue-item-actions {
+  display: flex;
+  flex: 0 0 auto;
+  flex-direction: column;
+  gap: 0.5rem;
+}

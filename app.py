@@ -33,7 +33,7 @@ TICKETS = [
         "service_id": 1,
         "assigned_to": "Counter 4",
         "status": "called",
-        "joined_at": datetime(2026, 10, 26, 9, 5),
+        "joined_at": datetime(2026, 10, 26, 2, 5),
     },
     {
         "number": 102,
@@ -41,9 +41,9 @@ TICKETS = [
         "email": "may.abbott@example.com",
         "mobile_num": "01234567890",
         "service_id": 1,
-        "assigned_to": "Counter 1",
-        "status": "called",
-        "joined_at": datetime(2026, 10, 26, 9, 12),
+        "assigned_to": "pending",
+        "status": "waiting",
+        "joined_at": datetime(2026, 10, 26, 2, 12),
     },
     {
         "number": 103,
@@ -53,7 +53,17 @@ TICKETS = [
         "service_id": 5,
         "assigned_to": "pending",
         "status": "waiting",
-        "joined_at": datetime(2026, 10, 26, 9, 15),
+        "joined_at": datetime(2026, 10, 26, 2, 15),
+    },
+    {
+        "number": 104,
+        "name": "John Doe",
+        "email": "john.doe@example.com",
+        "mobile_num": "01234567890",
+        "service_id": 6,
+        "assigned_to": "pending",
+        "status": "waiting",
+        "joined_at": datetime(2026, 10, 26, 2, 15),
     },
 ]
 
@@ -68,6 +78,7 @@ def index():
 def join_form():
     return render_template("join.html", services=SERVICES, form={})
 
+# queue join form submission 
 
 @app.post("/join")
 def join():
@@ -135,9 +146,72 @@ def leave(ticket_id):
     return redirect(url_for("index"))
 
 
-@app.route("/staff")
+# staff dashboard and actions
+
+@app.template_filter("minutes_since")
+def minutes_since(dt):
+    return int((datetime.now() - dt).total_seconds() // 60)
+
+
+@app.get("/staff")
 def staff_dashboard():
-    return "Staff dashboard coming soon"
+    service_id = request.args.get("service_id", type=int)
+    q = request.args.get("q", "").strip().lower()
+
+    waiting = [t for t in TICKETS if t["status"] == "waiting"]
+    total_waiting = len(waiting)
+    counts = {s["id"]: len([t for t in waiting if t["service_id"] == s["id"]])
+              for s in SERVICES}
+
+    if service_id:
+        waiting = [t for t in waiting if t["service_id"] == service_id]
+    if q:
+        waiting = [t for t in waiting
+                   if q in t["name"].lower() or q in str(t["number"])]
+
+    serving = next((t for t in TICKETS if t["status"] == "called"), None)
+    names = {s["id"]: s["name"] for s in SERVICES}
+    done = next((t for t in TICKETS if t["number"] == request.args.get("done", type=int)), None)
+    return render_template("staff.html", serving=serving, done=done, waiting=waiting,
+                       total_waiting=total_waiting, services=SERVICES,
+                       names=names, counts=counts, selected=service_id, q=q)
+
+
+@app.post("/staff/call-next")
+def call_next():
+    service_id = request.form.get("service_id", type=int)
+    if any(t["status"] == "called" for t in TICKETS):
+        flash("Finish serving the current ticket first.", "warning")
+        return redirect(url_for("staff_dashboard"))
+
+    nxt = next((t for t in TICKETS
+                if t["status"] == "waiting"
+                and (not service_id or t["service_id"] == service_id)), None)
+    if nxt is None:
+        flash("Nobody is waiting.", "info")
+    else:
+        nxt["status"] = "called"
+        nxt["assigned_to"] = "Counter 1"
+        flash(f"Ticket #{nxt['number']} called.", "info")
+    return redirect(url_for("staff_dashboard", service_id=service_id))
+
+
+@app.post("/staff/tickets/<int:ticket_id>/<action>")
+def staff_action(ticket_id, action):
+    new_status = {"call": "called", "serve": "served", "no-show": "no-show"}.get(action)
+    t = next((t for t in TICKETS if t["number"] == ticket_id), None)
+    if action == "call" and any(x["status"] == "called" for x in TICKETS):
+        flash("Finish serving the current ticket first.", "warning")
+        return redirect(url_for("staff_dashboard"))
+    
+    if t is None or new_status is None:
+        abort(404)
+    t["status"] = new_status
+    if new_status == "called":
+        t["assigned_to"] = "Counter 1"
+    flash(f"Ticket #{ticket_id} marked {new_status}.", "info")
+    done = None if new_status == "called" else ticket_id
+    return redirect(url_for("staff_dashboard", done=done))
 
 
 @app.route("/hello")
