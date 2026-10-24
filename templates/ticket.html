@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% block title %}Ticket #{{ ticket.number }} · SignalQ{% endblock %}
+
+{% block content %}
+  <h2>Ticket #{{ ticket.number }}</h2>
+  <p>Hi {{ ticket.name }}! You are <strong>number {{ position }}</strong> in the queue.</p>
+  <p>Your ticket details are as follows:</p>
+
+  <ul>
+    <li><strong>Email:</strong> {{ ticket.email }}</li>
+    <li><strong>Mobile Number:</strong> {{ ticket.mobile_num }}</li>
+    <li><strong>Service ID:</strong> {{ ticket.service_name }}</li>
+    <li><strong>Assigned To:</strong> {{ ticket.assigned_to }}</li>
+    <li><strong>Status:</strong> {{ ticket.status }}</li>
+  </ul>
+
+  <p><a href="{{ url_for('index') }}">&larr; Back to the queue</a></p>
+{% endblock %}
