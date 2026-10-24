@@ -1,19 +1,10 @@
 {% extends "base.html" %}
 
 {% block content %}
-  <p>Hello, {{ name }}!</p>
-
-  <p><a class="button" href="{{ url_for('join') }}">Join the queue</a></p>
-
-  <h2>Tickets in the queue</h2>
-  <ul class="tickets">
-    {% for t in tickets %}
-      <li>
-        <a href="{{ url_for('ticket', ticket_id=t.number) }}">#{{ t.number }} - {{ t.name }}</a>
-      </li>
-      </li>
-    {% else %}
-      <li>The queue is empty.</li>
-    {% endfor %}
-  </ul>
+  <section class="home">
+    <p class="home-eyebrow">Welcome to SignalQ</p>
+    <h1 class="home-title">Stay connected while you wait.</h1>
+    <p class="home-lead">Get a ticket for all your telecom needs. <br> Track your turn from any of your devices.</p>
+    <a class="btn btn-primary btn-lg" href="{{ url_for('join_form') }}">Join the queue</a>
+  </section>
 {% endblock %}
