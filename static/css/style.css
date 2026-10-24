@@ -1,3 +1,4 @@
+/* palette and Bootstrap overrides */
 :root {
   /* palette */
   --primary: #1E293B;
@@ -10,7 +11,7 @@
   --bs-primary: #1E293B;
   --bs-primary-rgb: 30, 41, 59;
   --bs-body-color: #1E293B;
-  --bs-body-bg: #FFFFFF;
+  --bs-body-bg: #F8FAFC;
   --bs-body-font-family: "Geist", system-ui, Arial, sans-serif;
   --bs-link-color: #0284C7;
   --bs-link-color-rgb: 2, 132, 199;
@@ -19,23 +20,21 @@
   --bs-danger: #B91C1C;
   --bs-danger-rgb: 185, 28, 28;
   --bs-form-invalid-color: #B91C1C;
-  --bs-form-invalid-border-color: #B91C1C;  
+  --bs-form-invalid-border-color: #B91C1C;
   --bs-border-color: #CBD5E1;
   --bs-secondary-color: #475569;
 }
 
-.form-control:focus,
-.form-select:focus {
-  border-color: var(--tertiary);
-  box-shadow: 0 0 0 0.25rem rgba(2, 132, 199, 0.25);
+/* global */
+h2 {
+  color: var(--secondary);
 }
 
-.btn-primary {
-  --bs-btn-focus-shadow-rgb: 2, 132, 199;
+footer {
+  color: var(--neutral);
 }
 
-h2 { color: var(--secondary); }
-
+/* buttons and form focus */
 .btn-primary {
   --bs-btn-bg: #1E293B;
   --bs-btn-border-color: #1E293B;
@@ -45,15 +44,31 @@ h2 { color: var(--secondary); }
   --bs-btn-active-border-color: #475569;
   --bs-btn-disabled-bg: #1E293B;
   --bs-btn-disabled-border-color: #1E293B;
+  --bs-btn-focus-shadow-rgb: 2, 132, 199;
 }
 
-footer { color: var(--neutral); }
+.btn-outline-danger {
+  --bs-btn-color: #B91C1C;
+  --bs-btn-border-color: #B91C1C;
+  --bs-btn-hover-bg: #B91C1C;
+  --bs-btn-hover-border-color: #B91C1C;
+  --bs-btn-active-bg: #B91C1C;
+  --bs-btn-active-border-color: #B91C1C;
+  --bs-btn-focus-shadow-rgb: 185, 28, 28;
+}
+
+.form-control:focus,
+.form-select:focus {
+  border-color: var(--tertiary);
+  box-shadow: 0 0 0 0.25rem rgba(2, 132, 199, 0.25);
+}
 
 /* home page */
 .home {
   padding: 5rem 0;
   text-align: center;
 }
+
 .home-eyebrow {
   margin: 0;
   font-size: 1rem;
@@ -62,6 +77,7 @@ footer { color: var(--neutral); }
   text-transform: uppercase;
   color: var(--secondary);
 }
+
 .home-title {
   max-width: 640px;
   margin: 0.5rem auto 1rem;
@@ -70,6 +86,7 @@ footer { color: var(--neutral); }
   line-height: 1.15;
   color: var(--primary);
 }
+
 .home-lead {
   max-width: 520px;
   margin: 0 auto 2rem;
@@ -77,31 +94,73 @@ footer { color: var(--neutral); }
   color: var(--secondary);
 }
 
-/* join-queue form */
-.join-form button {
-  display: inline-block;
-  background: var(--primary);
-  color: var(--white);
-  border: none;
-  border-radius: 8px;
-  padding: 0.6rem 1.2rem;
-  font: inherit;
-  cursor: pointer;
-}
-.join-form button:hover { background: var(--secondary); }
-
-.join-form {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  max-width: 320px;
+/* my place page */
+.ticket-card {
+  --bs-card-bg: var(--white);
+  padding: 2.5rem 0.5rem;
+  border: 2px dashed var(--bs-border-color);
+  border-radius: 16px;
 }
 
-.join-form input {
-  padding: 0.5rem;
-  border: 1px solid var(--neutral);
-  border-radius: 6px;
-  font: inherit;
+.ticket-label {
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--secondary);
 }
 
-.error { color: #B91C1C; font-weight: 600; }
+/* status pill */
+.status-pill {
+  padding: 0.3rem 0.8rem;
+  border: 2px dashed var(--neutral);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--primary);
+  font-size: clamp(1rem, 5vw, 1.5rem);
+  font-weight: 600;
+}
+
+.status-waiting { background: #FEF3C7; border-color: #D97706; color: #92400E; }
+.status-called  { background: #E0F2FE; border-color: var(--tertiary); color: #075985; }
+.status-served  { background: #DCFCE7; border-color: #16A34A; color: #166534; }
+.status-left    { background: #F1F5F9; border-color: var(--neutral); color: var(--secondary); }
+.status-no-show { background: #FEE2E2; border-color: #B91C1C; color: #991B1B; }
+
+/* service and position text */
+.ticket-service,
+.ticket-position {
+  font-size: clamp(0.9375rem, 4.5vw, 1.25rem);
+}
+
+/* customer details box */
+.ticket-details {
+  padding: 1rem;
+  border: 1px solid var(--bs-border-color);
+  border-radius: 12px;
+  background: var(--bs-body-bg);
+  font-size: clamp(0.8125rem, 3.6vw, 1rem);
+  font-weight: 500;
+}
+
+.ticket-details > div > span:first-child {
+  color: var(--secondary);
+}
+
+/* last updated */
+.ticket-meta {
+  font-size: clamp(0.75rem, 3.2vw, 1rem);
+  color: var(--neutral);
+}
+
+/* leave button wrapper */
+.leave-wrap {
+  max-width: 346px;
+  margin: 1rem auto 0;
+}
+
+/* tablet and up (768px+) */
+@media (min-width: 768px) {
+  .ticket-card    { padding: 2.5rem 8rem; }
+  .status-pill    { padding: 0.4rem 1rem; }
+  .ticket-details { padding: 2rem 1.5rem; }
+}

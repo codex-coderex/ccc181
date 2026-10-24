@@ -5,7 +5,9 @@ Run it with:
 then open http://127.0.0.1:5000
 """
 from flask import Flask, abort, flash, redirect, render_template, request, url_for
+from datetime import datetime
 import re
+
 
 app = Flask(__name__)
 app.secret_key = "dev-only-change-me"
@@ -28,27 +30,30 @@ TICKETS = [
         "name": "Jason Santos",
         "email": "jason.santos@example.com",
         "mobile_num": "01234567890",
-        "service_id": 1,  # SIM & eSIM Registration
+        "service_id": 1,
         "assigned_to": "Counter 4",
-        "status": "Called",
+        "status": "called",
+        "joined_at": datetime(2026, 10, 26, 9, 5),
     },
     {
         "number": 102,
         "name": "May Abbott",
         "email": "may.abbott@example.com",
         "mobile_num": "01234567890",
-        "service_id": 3,  # Line Activation
+        "service_id": 1,
         "assigned_to": "Counter 1",
-        "status": "Called",
+        "status": "called",
+        "joined_at": datetime(2026, 10, 26, 9, 12),
     },
     {
         "number": 103,
         "name": "John Doe",
         "email": "john.doe@example.com",
         "mobile_num": "01234567890",
-        "service_id": 5,  # Home Fiber Broadband Applications
-        "assigned_to": "Pending",
-        "status": "Waiting",
+        "service_id": 5,
+        "assigned_to": "pending",
+        "status": "waiting",
+        "joined_at": datetime(2026, 10, 26, 9, 15),
     },
 ]
 
@@ -57,15 +62,6 @@ def index():
     # render_template looks inside the templates/ folder and passes
     # keyword arguments to the template as variables.
     return render_template("index.html", name="Jason", tickets=TICKETS)
-
-
-@app.route("/queue/<int:ticket_id>")
-def ticket(ticket_id):
-    # <int:ticket_id> only matches numbers, so /queue/abc returns 404.
-    for position, t in enumerate(TICKETS, start=1):
-        if t["number"] == ticket_id:
-            return render_template("ticket.html", ticket=t, position=position)
-    abort(404)  # no ticket with that number
 
 
 @app.get("/join")
@@ -108,11 +104,35 @@ def join():
         "email": email,
         "mobile_num": digits,
         "service_id": service_id,
-        "assigned_to": "Pending",
-        "status": "Waiting",
+        "assigned_to": "pending",
+        "status": "waiting",
+        "joined_at": datetime.now(),
     })
     flash(f"You joined the queue. Your ticket is #{number}.", "success")
     return redirect(url_for("ticket", ticket_id=number))
+
+
+@app.get("/queue/<int:ticket_id>")
+def ticket(ticket_id):
+    t = next((t for t in TICKETS if t["number"] == ticket_id), None)
+    if t is None:
+        abort(404)
+    ahead = [x for x in TICKETS
+             if x["service_id"] == t["service_id"]
+             and x["status"] == "waiting"
+             and x["number"] < t["number"]]
+    service = next(s for s in SERVICES if s["id"] == t["service_id"])
+    return render_template("ticket.html", ticket=t, service=service,ahead=len(ahead), now=datetime.now())
+
+
+@app.post("/queue/<int:ticket_id>/leave")
+def leave(ticket_id):
+    t = next((t for t in TICKETS if t["number"] == ticket_id), None)
+    if t is None:
+        abort(404)
+    t["status"] = "left"
+    flash("You left the queue.", "info")
+    return redirect(url_for("index"))
 
 
 @app.route("/staff")

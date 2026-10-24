@@ -3,17 +3,77 @@
 {% block title %}Ticket #{{ ticket.number }} · SignalQ{% endblock %}
 
 {% block content %}
-  <h2>Ticket #{{ ticket.number }}</h2>
-  <p>Hi {{ ticket.name }}! You are <strong>number {{ position }}</strong> in the queue.</p>
-  <p>Your ticket details are as follows:</p>
+<div class="row justify-content-center">
+  <div class="col-12 col-lg-8">
 
-  <ul>
-    <li><strong>Email:</strong> {{ ticket.email }}</li>
-    <li><strong>Mobile Number:</strong> {{ ticket.mobile_num }}</li>
-    <li><strong>Service ID:</strong> {{ ticket.service_name }}</li>
-    <li><strong>Assigned To:</strong> {{ ticket.assigned_to }}</li>
-    <li><strong>Status:</strong> {{ ticket.status }}</li>
-  </ul>
+    <div class="card ticket-card text-center">
+      <div class="card-body p-4">
 
-  <p><a href="{{ url_for('index') }}">&larr; Back to the queue</a></p>
+        <p class="ticket-label mb-1">Your ticket</p>
+        <p class="display-1 fw-bold mb-2">#{{ ticket.number }}</p>
+
+        <div id="live-status" aria-live="polite" class="mb-3">
+          <span class="badge status-pill status-{{ ticket.status }}">{{ ticket.status|replace('-', ' ')|upper }}</span>
+        </div>
+
+        <p class="ticket-service mb-3">Service: <strong>{{ service.name }}</strong></p>
+
+        <hr>
+
+        <div id="live-position" class="fs-5" aria-live="polite">
+          <p class="mb-1">
+            {% if ticket.status == 'waiting' %}
+              {% if ahead == 0 %}
+                <strong>You're next!</strong>
+              {% elif ahead == 1 %}
+                There is <strong>1 person</strong> ahead of you.
+              {% else %}
+                There are <strong>{{ ahead }}</strong> people ahead of you.
+              {% endif %}
+            {% elif ticket.status == 'called' %}
+              <strong>You are being called.</strong>
+            {% elif ticket.status == 'served' %}
+              <strong>You have been served. Thank you!</strong>
+            {% elif ticket.status == 'left' %}
+              <strong>You left the queue.</strong>
+            {% elif ticket.status == 'no-show' %}
+              <strong>You missed your call.</strong> Please see the staff.
+            {% endif %}
+          </p>
+          <p class="mb-0">Counter: <strong>{{ ticket.assigned_to }}</strong></p>
+        </div>
+
+        <hr>
+
+        <div class="ticket-details text-start">
+          <div class="d-flex justify-content-between gap-3">
+            <span>Name:</span><span class="text-end">{{ ticket.name }}</span>
+          </div>
+          <div class="d-flex justify-content-between gap-3">
+            <span>Mobile Number:</span><span class="text-end">{{ ticket.mobile_num }}</span>
+          </div>
+          <div class="d-flex justify-content-between gap-3">
+            <span>Email:</span><span class="text-end text-break">{{ ticket.email or '—' }}</span>
+          </div>
+          <div class="d-flex justify-content-between gap-3">
+            <span>Joined At:</span><span class="text-end">{{ ticket.joined_at.strftime('%I:%M %p') }}</span>
+          </div>
+        </div>
+
+        <p class="ticket-meta mt-3 mb-0">
+          Last updated: <span id="last-updated">{{ now.strftime('%I:%M:%S %p') }}</span><br>
+          (Auto-refreshes every 10s)
+        </p>
+
+      </div>
+    </div>
+
+    {% if ticket.status in ['waiting', 'called'] %}
+      <form method="post" action="{{ url_for('leave', ticket_id=ticket.number) }}" class="leave-wrap">
+        <button type="submit" class="btn btn-outline-danger w-100">Leave queue</button>
+      </form>
+    {% endif %}
+
+  </div>
+</div>
 {% endblock %}
