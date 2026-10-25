@@ -2,8 +2,9 @@
 {% block title %}Staff dashboard · SignalQ{% endblock %}
 
 {% block content %}
-{% macro post_btn(url, label, cls, aria, disabled=false) %}
-  <form method="post" action="{{ url }}">
+{% macro post_btn(url, label, cls, aria, disabled=false, confirm=none) %}
+  <form method="post" action="{{ url }}"
+        {% if confirm %}onsubmit='return confirm({{ confirm|tojson }})'{% endif %}>
     <button type="submit" class="btn {{ cls }} w-100" aria-label="{{ aria }}"
             {% if disabled %}disabled{% endif %}>{{ label }}</button>
   </form>
@@ -51,7 +52,8 @@
                       'Mark ticket %d as served'|format(serving.number)) }}
           {{ post_btn(url_for('staff_action', ticket_id=serving.number, action='no-show'),
                       'No Show', 'btn-outline-danger',
-                      'Mark ticket %d as no-show'|format(serving.number)) }}
+                      'Mark ticket %d as no-show'|format(serving.number),
+                      confirm='Mark ticket #%d as no-show?'|format(serving.number)) }}
         {% else %}
           <form method="post" action="{{ url_for('call_next') }}">
             <input type="hidden" name="service_id" value="{{ selected or '' }}">
@@ -120,7 +122,8 @@
                                 'Call ticket %d to counter'|format(t.number), serving is not none) }}
                     {{ post_btn(url_for('staff_action', ticket_id=t.number, action='no-show'),
                                 'No-show', 'btn-sm btn-outline-danger text-uppercase',
-                                'Mark ticket %d as no-show'|format(t.number)) }}
+                                'Mark ticket %d as no-show'|format(t.number),
+                                confirm='Mark ticket #%d as no-show?'|format(t.number)) }}
                 </div>
                </td>
             </tr>
@@ -148,7 +151,8 @@
                     'Call ticket %d to counter'|format(t.number), serving is not none) }}
         {{ post_btn(url_for('staff_action', ticket_id=t.number, action='no-show'),
                     'No-show', 'btn-sm btn-outline-danger',
-                    'Mark ticket %d as no-show'|format(t.number)) }}
+                    'Mark ticket %d as no-show'|format(t.number),
+                    confirm='Mark ticket #%d as no-show?'|format(t.number)) }}
        </div>
     </li>
     {% else %}
