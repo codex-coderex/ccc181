@@ -1,134 +1,73 @@
 # SignalQ: Stay connected while you wait
 
-Starter Flask app for **ignalQ: Stay connected while you wait**.
-It shows the project structure, routes, templates and static files from the slides.
+SignalQ is a queue management system for a telecom service center. Customers get a ticket for services like SIM registration, SIM replacement, line activation, postpaid and fiber applications, bill payment and technical support. They can check their place in line from any device. Staff see the waiting list, call the next ticket, and mark customers as served or no-show.
 
-## Project structure
-
-```
-my-app/
-├── app.py              # creates the app and defines routes
-├── requirements.txt    # packages to rebuild the environment
-├── .gitignore          # keeps .venv, caches and secrets out of Git
-├── .venv/              # your virtual environment (not committed)
-├── templates/          # Jinja2 HTML files for render_template()
-│   ├── base.html       # shared layout
-│   ├── index.html      # home page
-│   └── ticket.html     # page for /queue/<ticket_id>
-└── static/             # served at /static/...
-    ├── css/style.css
-    └── js/main.js
-```
-
-## Routes
-
-| URL | View function | What you see |
-|---|---|---|
-| `/` | `index()` | "Hello, Jason!" and a list of tickets, rendered with `index.html` |
-| `/queue/<int:ticket_id>` | `ticket()` | A page for that ticket, e.g. `/queue/12` |
-| `/hello` | `hello()` | The plain text "Hello, CCC181!" |
-
-Try `/queue/abc`: the `int` converter only accepts numbers, so Flask returns 404.
-
-## 1. Set up the Python environment
+## How to run
 
 ```bash
-# create (once per project)
+# create the environment (once)
 python -m venv .venv
 
-# activate (every new terminal)
+# activate it (every new terminal)
 .venv\Scripts\activate          # Windows
 source .venv/bin/activate       # macOS/Linux
 
 # install the packages
 pip install -r requirements.txt
-```
 
-Your prompt shows `(.venv)` when the environment is active. Some systems use `python3` or `py` instead of `python`.
-If PowerShell blocks the activate script, run `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned` once, or use Command Prompt.
-
-If you add more packages later, record them with:
-
-```bash
-pip freeze > requirements.txt
-```
-
-## 2. Run the app
-
-```bash
+# run the app
 flask --app app run --debug
 ```
 
-Open http://127.0.0.1:5000. With `--debug`, the server reloads every time you save a file. Never use debug mode in production.
+Open http://127.0.0.1:5000. Some systems use `python3` or `py` instead of `python`.
 
-## 3. Put it on GitHub
+To test on a phone on the same Wi-Fi, run `flask --app app run --debug --host 0.0.0.0` and open your laptop's IP address on the phone.
 
-### Once per computer
+## Screens
 
-```bash
-git config --global user.name "Your Name"
-git config --global user.email you@g.msuiit.edu.ph   # same email as your GitHub account
-git config --list
+| Screen | URL | Who uses it |
+| --- | --- | --- |
+| Home | `/` | Person waiting |
+| Join the queue | `/join` | Person waiting |
+| My place | `/queue/<ticket number>` | Person waiting |
+| Staff dashboard | `/staff` | Staff member |
+
+**Note:** the staff dashboard is open to anyone for now. Staff login comes in a later week.
+
+## Routes
+
+| URL | Method | What it does |
+| --- | --- | --- |
+| `/` | GET | Home page |
+| `/join` | GET | Shows the join form |
+| `/join` | POST | Validates the form and creates a ticket |
+| `/queue/<ticket_id>` | GET | My place page for one ticket |
+| `/queue/<ticket_id>/leave` | POST | Marks the ticket as left |
+| `/queue/<ticket_id>/status.json` | GET | Status and position as JSON, used for the 10-second refresh |
+| `/staff` | GET | Staff dashboard, with service filter and search |
+| `/staff/call-next` | POST | Calls the first waiting ticket |
+| `/staff/tickets/<ticket_id>/<action>` | POST | Call, serve or no-show a ticket |
+
+## Project structure
+
+```
+├── app.py              # routes and sample data
+├── requirements.txt    # packages
+├── templates/
+│   ├── base.html       # shared layout and navigation
+│   ├── index.html      # home page
+│   ├── join.html       # join the queue form
+│   ├── ticket.html     # My place
+│   └── staff.html      # staff dashboard
+├── static/
+│   ├── css/style.css
+│   └── js/main.js
+└── docs/
+    ├── week1/
+    └── week3/          # personas, wireframes, feedback, accessibility, usability test, report
 ```
 
-### Create the local repository and first commit
+## Notes
 
-```bash
-git init
-git branch -M main
-git status              # .venv should NOT appear, thanks to .gitignore
-git add .
-git commit -m "Add Flask starter app"
-```
-
-### Connect to GitHub and push
-
-1. On GitHub, create a new **empty** repository (no README, no .gitignore).
-2. Copy its URL, then:
-
-```bash
-git remote add origin <repo-url>
-git push -u origin main
-```
-
-GitHub does not accept your account password for Git over HTTPS. Sign in through Git Credential Manager or the GitHub CLI, or use a personal access token or SSH key.
-
-### Everyday loop
-
-```bash
-git pull origin main     # before you start working
-git status
-git add <file>
-git commit -m "Add join-queue form"
-git push origin main     # when you have commits to share
-```
-
-## 4. Lab: ship it through a pull request
-
-1. On GitHub, open an issue: **"Set up Flask starter app"**.
-2. Pull the latest `main`, then create a branch:
-   ```bash
-   git switch main
-   git pull origin main
-   git switch -c feature/flask-setup
-   ```
-3. Create `.venv`, install Flask, write `requirements.txt` and `.gitignore`.
-4. Build `app.py` with a home route and one dynamic route, rendered with `base.html` and `index.html`.
-5. Commit in small steps, then push the branch:
-   ```bash
-   git push -u origin feature/flask-setup
-   ```
-6. On GitHub, click **Compare & pull request** and write `Closes #N` in the description (N is your issue number). Merge it, then:
-   ```bash
-   git switch main
-   git pull origin main
-   ```
-
-**Early finishers:** add another static CSS rule linked with `url_for`, or a third route based on one Must feature from your project milestone.
-
-## Commit message tips
-
-- Short summary in the imperative: "Add...", "Fix..."
-- One logical change per commit
-- Commit early and often
-- Good: "Add join-queue form". Unhelpful: "update", "asdf", "final na talaga".
+- Tickets are stored in a Python list, so they reset when the server restarts. A database comes in Week 4.
+- Ticket statuses are `waiting`, `called`, `served`, `left` and `no-show`.
