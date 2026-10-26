@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <section class="home">
+    <p class="home-eyebrow">Welcome to SignalQ</p>
+    <h1 class="home-title">Stay connected while you wait.</h1>
+    <p class="home-lead">Get a ticket for all your telecom needs. <br> Track your turn from any of your devices.</p>
+    <a class="btn btn-primary btn-lg" href="{{ url_for('join_form') }}">Join the queue</a>
+  </section>
+{% endblock %}

@@ -1,0 +1,163 @@
+{% extends "base.html" %}
+{% block title %}Staff dashboard · SignalQ{% endblock %}
+
+{% block content %}
+{% macro post_btn(url, label, cls, aria, disabled=false, confirm=none) %}
+  <form method="post" action="{{ url }}"
+        {% if confirm %}onsubmit='return confirm({{ confirm|tojson }})'{% endif %}>
+    <button type="submit" class="btn {{ cls }} w-100" aria-label="{{ aria }}"
+            {% if disabled %}disabled{% endif %}>{{ label }}</button>
+  </form>
+{% endmacro %}
+
+<h1 class="visually-hidden">Staff dashboard</h1>
+
+<!-- Currently serving -->
+<section class="card staff-card mb-4" aria-labelledby="serving-title">
+  <div class="card-body">
+    <h2 id="serving-title" class="staff-card-title serving-title">Currently Serving Ticket Number</h2>
+
+    <div class="serving">
+      <div class="serving-ticket d-none d-md-block">
+        <span class="ticket-label">Ticket no.</span>
+        <strong class="serving-ticket-number">{% if serving %}#{{ serving.number }}{% else %}–{% endif %}</strong>
+      </div>
+
+      <div class="serving-body">
+        {% if serving %}
+          <p class="serving-number d-md-none">#{{ serving.number }}</p>
+          <p class="serving-name">{{ serving.name }}</p>
+          <dl class="serving-details">
+            <div><dt>Mobile Number:</dt><dd>{{ serving.mobile_num }}</dd></div>
+            <div><dt>Email:</dt><dd class="text-break">{{ serving.email or '—' }}</dd></div>
+            <div><dt>Service:</dt><dd>{{ names[serving.service_id] }}</dd></div>
+            <div><dt>Time Waited:</dt><dd>{{ serving.joined_at|minutes_since }} min</dd></div>
+          </dl>
+        {% else %}
+            {% if done and done.status == 'served' %}
+                <p class="serving-name">Served Ticket #{{ done.number }}</p>
+            {% elif done and done.status == 'no-show' %}
+                <p class="serving-name">Ticket #{{ done.number }} marked no-show</p>
+            {% else %}
+                <p class="serving-name">Nobody is being served right now.</p>
+            {% endif %}
+                <p class="serving-hint">Tap “Call Next” to serve the first person in line.</p>
+            {% endif %}
+      </div>
+
+      <div class="serving-actions">
+        {% if serving %}
+          {{ post_btn(url_for('staff_action', ticket_id=serving.number, action='serve'),
+                      'Mark Served', 'btn-outline-primary',
+                      'Mark ticket %d as served'|format(serving.number)) }}
+          {{ post_btn(url_for('staff_action', ticket_id=serving.number, action='no-show'),
+                      'No Show', 'btn-outline-danger',
+                      'Mark ticket %d as no-show'|format(serving.number),
+                      confirm='Mark ticket #%d as no-show?'|format(serving.number)) }}
+        {% else %}
+          <form method="post" action="{{ url_for('call_next') }}">
+            <input type="hidden" name="service_id" value="{{ selected or '' }}">
+            <button type="submit" class="btn btn-outline-primary w-100"
+                    {% if not total_waiting %}disabled{% endif %}>Call Next</button>
+          </form>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Waiting queue -->
+<section aria-labelledby="queue-title">
+  <div class="card staff-card">
+    <div class="card-body">
+      <div class="queue-head">
+        <h2 id="queue-title" class="staff-card-title mb-0">
+          Waiting Queue – {{ total_waiting }} {{ 'person' if total_waiting == 1 else 'people' }} waiting
+        </h2>
+
+        <form method="get" class="queue-filters" role="search">
+          <label for="q" class="visually-hidden">Search ticket or name</label>
+          <input id="q" name="q" type="search" class="form-control form-control-sm"
+                 placeholder="Search ticket or name…" value="{{ q }}">
+          <label for="service_id" class="visually-hidden">Filter by service</label>
+          <select id="service_id" name="service_id" class="form-select form-select-sm"
+                  onchange="this.form.submit()">
+            <option value="">All services</option>
+            {% for s in services %}
+              <option value="{{ s.id }}" {% if selected == s.id %}selected{% endif %}>
+                {{ s.name }} ({{ counts[s.id] }})
+              </option>
+            {% endfor %}
+          </select>
+          <noscript><button type="submit" class="btn btn-sm btn-outline-primary">Apply</button></noscript>
+        </form>
+      </div>
+
+      <!-- Laptop: table -->
+      <div class="table-responsive d-none d-md-block mt-3">
+        <table class="table table-borderless queue-table align-middle mb-0">
+          <caption class="visually-hidden">Customers waiting in line, in the order they joined</caption>
+          <thead>
+            <tr>
+              <th scope="col">Ticket #</th>
+              <th scope="col">Customer Name</th>
+              <th scope="col">Service Requested</th>
+              <th scope="col">Wait Time</th>
+              <th scope="col">Status</th>
+              <th scope="col">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for t in waiting %}
+            <tr>
+              <th scope="row">#{{ t.number }}</th>
+              <td>{{ t.name }}</td>
+              <td>{{ names[t.service_id] }}</td>
+              <td>{{ t.joined_at|minutes_since }} min</td>
+              <td><span class="badge status-pill status-sm status-{{ t.status }}">{{ t.status|upper }}</span></td>
+              <td>
+                <div class="row-actions">
+                    {{ post_btn(url_for('staff_action', ticket_id=t.number, action='call'),
+                                'Call to counter', 'btn-sm btn-outline-primary text-uppercase',
+                                'Call ticket %d to counter'|format(t.number), serving is not none) }}
+                    {{ post_btn(url_for('staff_action', ticket_id=t.number, action='no-show'),
+                                'No-show', 'btn-sm btn-outline-danger text-uppercase',
+                                'Mark ticket %d as no-show'|format(t.number),
+                                confirm='Mark ticket #%d as no-show?'|format(t.number)) }}
+                </div>
+               </td>
+            </tr>
+            {% else %}
+            <tr><td colspan="6" class="text-center py-4">Nobody is waiting right now.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Phone: one white row per ticket -->
+  <ul class="queue-list list-unstyled d-md-none mb-0">
+    {% for t in waiting %}
+    <li class="queue-item">
+      <span class="queue-item-number">#{{ t.number }}</span>
+      <span class="queue-item-info">
+        <strong>{{ t.name }}</strong><br>
+        {{ names[t.service_id] }} · {{ t.joined_at|minutes_since }} min
+      </span>
+      <div class="queue-item-actions">
+        {{ post_btn(url_for('staff_action', ticket_id=t.number, action='call'),
+                    'Call', 'btn-sm btn-outline-primary',
+                    'Call ticket %d to counter'|format(t.number), serving is not none) }}
+        {{ post_btn(url_for('staff_action', ticket_id=t.number, action='no-show'),
+                    'No-show', 'btn-sm btn-outline-danger',
+                    'Mark ticket %d as no-show'|format(t.number),
+                    confirm='Mark ticket #%d as no-show?'|format(t.number)) }}
+       </div>
+    </li>
+    {% else %}
+    <li class="queue-item">Nobody is waiting right now.</li>
+    {% endfor %}
+  </ul>
+</section>
+{% endblock %}
