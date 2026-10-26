@@ -30,14 +30,14 @@
 | 1. Show position as a plain sentence | Yes | TJ read "3 people ahead of you" and answered Task 2 correctly. |
 | 2. Update on its own, show status and counter large, show "last updated" | Yes | TJ saw that his ticket updated every 10 seconds with the Last Updated timestamp. |
 | 3. Make "Leave queue" easy to find, with a confirmation screen | Partly | The button is easy to find, but **there is no confirmation** screen. |
-| 4. Large buttons and text, light page | Yes | TJ saw that the UI was readable on mobile devices. |
+| 4. Large buttons and text, light page | Yes | TJ saw that the UI was readable on mobile devices (momentarily opened the ngrok link on mobile, but testing was mainly on Desktop PC). |
 | 5. Choose a specific service on joining, show it on the ticket and staff row | Yes | TJ chose a service on Join, and it appeared on My place and on the staff dashboard. |
 
 ## One improvement
 
 **Problem:** Marking No-show and Leave queue are permanent single clicks. Michael's rule 3 and Joanna's rule 3 both call for a confirmation, and a mis-tap cannot be easily undone. 
 
-**Fix:** Add confirmation for leave and no-show. Accidental misclick will cause a slip that is difficult to undo.
+**Fix:** Added confirmation for leave and no-show. Accidental misclick will cause a slip that is difficult to undo.
 
 **Before:**
 

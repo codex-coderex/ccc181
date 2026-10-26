@@ -4,7 +4,7 @@
 
 | Screen | Screenshot | Main issues fixed |
 | --- | --- | --- |
-| Home Page | ![Staff Lighthouse score](screenshots/lighthouse-home-page.png) | No Issue |
+| Home Page | ![Home Lighthouse score](screenshots/lighthouse-home-page.png) | No Issue |
 | Join | ![Join Lighthouse score](screenshots/lighthouse-join.png) | No Issue |
 | My place | ![Join Lighthouse score](screenshots/lighthouse-my-place.png) | No Issue |
 | Staff dashboard | ![Staff Lighthouse score](screenshots/lighthouse-staff-dashboard.png) | No Issue |
@@ -28,7 +28,7 @@
 | Status is shown in words, not only color | ✅ | ✅ | ✅ |
 | Readable at 375 px with no sideways page scroll | ✅ | ✅ | ✅ |
 | Buttons at least about 44 × 44 px | ✅ | ✅ | ✅ |
-| Page has one `<h1>` and headings in order | ✅ | ✅  | ❌ | 
+| Page has one `<h1>` and headings in order | ✅ | ❌  | ✅ | 
 | `<html lang="en">` (or your language) is set | ✅ | ✅ | ✅ | 
 
 **Fixes made from the checklist:** `ticket.html` did not have an `<h1>`, so I changed the ticket number from a `<p>` to an `<h1>`.

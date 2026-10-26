@@ -83,11 +83,11 @@ The keyboard-only test passed on all screens. The skip link appeared on the firs
 
 Full notes: [docs/week3/usability-test.md](usability-test.md)
 
-TJ tested the app [on a phone / on a laptop]. He acted as both personas but is closer to Michael. He is not a CCC181 classmate. No full name or face is recorded.
+TJ tested the app on a desktop PC. He acted as both personas but is closer to Michael. He is not a CCC181 classmate. 
 
 | Task | Finished? | Time | Notes |
 | --- | --- | --- | --- |
-| 1. Get in line for [service] | Yes | about 7-10s | He found the Join button and completed the form without hesitation or help. |
+| 1. Get in line for SIM Registration | Yes | about 7-10s | He found the Join button and completed the form without hesitation or help. |
 | 2. Find how many people are ahead and his ticket number | Yes | about 3s | He went straight to the large ticket number and the "people ahead" sentence. |
 | 3. As staff, call the next person and mark them as served | Yes | about 5s | He found Call Next at the top of the dashboard and completed the task with no wrong clicks. |
 
@@ -103,7 +103,7 @@ No task caused trouble, so I chose the improvement from the gaps between my pers
 
 ## Reflection
 
-**Hardest part:** The queue of staff members was the most challenging task during the week. The most challenging thing about the logic was the way it was implemented: the dashboard should be able to distinguish between the ticket currently being served and those who are left in the queue, to serve just one ticket at a time, as well as to retain functionality of the filters and search in the process. The display of the queue proved to be more difficult than I initially thought since it is shown in two versions: a table on a computer screen and rows on a phone.
+**Hardest part:** The queue dashboard of staff members was the most challenging task during the week. The most challenging thing about the logic was the way it was implemented: the dashboard should be able to distinguish between the ticket currently being served and those who are left in the queue, to serve just one ticket at a time, as well as to retain functionality of the filters and search in the process. The display of the queue proved to be more difficult than I initially thought since it is shown in two versions: a table on a computer screen and rows on a phone.
 
 **What I will change in Week 4:** In Week 4 I will move the tickets from a Python list into a persistent database, so they are saved even when the server restarts. I will also improve the UI design. The queue was the hardest part this week, so I want to make the staff dashboard simpler and cleaner, and make the status and counter on the ticket page easier to read at a glance.
 
