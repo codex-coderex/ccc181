@@ -10,7 +10,7 @@
 | **Student ID** | 2024-0480 |
 | **Section** | CS3B |
 | **Date** | October 25, 2026 |
-| **Pull request** | [Link to your pull request] |
+| **Pull request** | https://github.com/codex-coderex/ccc181/pull/2 |
 
 ## Personas
 
