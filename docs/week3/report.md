@@ -105,7 +105,7 @@ No task caused trouble, so I chose the improvement from the gaps between my pers
 
 **Hardest part:** The queue dashboard of staff members was the most challenging task during the week. The most challenging thing about the logic was the way it was implemented: the dashboard should be able to distinguish between the ticket currently being served and those who are left in the queue, to serve just one ticket at a time, as well as to retain functionality of the filters and search in the process. The display of the queue proved to be more difficult than I initially thought since it is shown in two versions: a table on a computer screen and rows on a phone.
 
-**What I will change in Week 4:** In Week 4 I will move the tickets from a Python list into a persistent database, so they are saved even when the server restarts. I will also improve the UI design. The queue was the hardest part this week, so I want to make the staff dashboard simpler and cleaner, and make the status and counter on the ticket page easier to read at a glance.
+**What I will change in Week 4:** In Week 4 I will move the tickets from a Python list into a persistent database, so they are saved even when the server restarts. I will also improve the UI design. The queue was the hardest part this week, so I want to make the staff dashboard simpler and cleaner, and make the status and counter on the ticket page easier to read at a glance. I also wish to improve the confirmation modals as they only currently use browser dialogs.
 
 ## Declaration
 
