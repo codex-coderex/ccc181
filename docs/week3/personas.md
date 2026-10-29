@@ -49,7 +49,7 @@ After Michael finishes assisting a customer with their query regarding bill paym
 
 ### Scenario
 
-The time is 10:20 am on Wednesday, and Joanna has two hours before Lia has to go to school. She enters the service center to see that the lobby is very crowded and opens the website on her cell phone while carrying her bag. She selects "Bill inquiry" and enters her name, email, and cell phone number to get ticket number 318. She sees from the webpage that there are five people ahead of her and the time when it was last updated, but she still notes down the ticket number on the receipt. She looks for a comfortable spot and waits for her turn. Once called, the ticket status is updated and she is alerted and directed to which counter is serving her.
+The time is 10:20 am on Wednesday, and Joanna has two hours before Lia has to go to school. She enters the service center to see that the lobby is very crowded and opens the website on her cell phone while carrying her bag. She selects "SIM Replacement" and enters her name, email, and cell phone number to get ticket number 318. She sees from the webpage that there are five people ahead of her and the time when it was last updated, but she still notes down the ticket number on the receipt. She looks for a comfortable spot and waits for her turn. Once called, the ticket status is updated and she is alerted and directed to which counter is serving her.
 
 ### Top tasks in the app
 
