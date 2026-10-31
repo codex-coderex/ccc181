@@ -29,7 +29,7 @@
           <div class="mb-3">
             <label for="mobile_num" class="form-label fw-semibold">Mobile Number <span aria-hidden="true">*</span></label>
             <input id="mobile_num" name="mobile_num" type="tel" inputmode="tel" autocomplete="tel" required
-                   placeholder="+63 (Phone Number)"
+                   placeholder="+63/09 (Phone Number)"
                    class="form-control {% if errors and errors.mobile_num %}is-invalid{% endif %}"
                    value="{{ form.get('mobile_num', '') }}"
                    {% if errors and errors.mobile_num %}aria-describedby="mobile-error"{% endif %}>

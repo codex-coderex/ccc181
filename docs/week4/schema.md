@@ -38,23 +38,28 @@ Several requirements reuse the same tables and columns. In particular, account t
 | Table | Column | PostgreSQL type | Constraint | Why |
 | --- | --- | --- | --- | --- |
 | `users` | `id` | `integer GENERATED ALWAYS AS IDENTITY` | `PRIMARY KEY` | Unique identifier for each customer or staff member. |
-| `users` | `name` | `varchar(80)` | `NOT NULL` | Stores the name entered by a customer (FR-01), or the name of a staff member. |
-| `users` | `phone` | `varchar(11)` | `UNIQUE, CHECK (phone IS NULL OR phone ~ '^09[0-9]{9}$'), CHECK (role = 'staff' OR phone IS NOT NULL)` | Stores a Philippine mobile number (11 digits starting with 09) for FR-01. The first check rejects badly formatted numbers. The second makes the phone required for customers at the database level. Staff rows may leave it empty. |
-| `users` | `email` | `varchar(120)` | `NULL` | Optional customer email under FR-01. |
-| `users` | `role` | `varchar(20)` | `NOT NULL DEFAULT 'customer'`, `CHECK (role IN ('customer', 'staff'))` | Separates customer and staff roles. |
+| `users` | `name` | `varchar(80)` | `NOT NULL, CHECK (btrim(name) <> '')` | Stores the name entered by a customer (FR-01), or the name of a staff member. |
+| `users` | `phone` | `varchar(11)` | `UNIQUE, CHECK (phone IS NULL OR phone ~ '^09[0-9]{9}$'), CHECK (role = 'staff' OR phone IS NOT NULL)` | Stores normalized Philippine mobile numbers (11 digits starting with 09) for FR-01. UNIQUE prevents duplicate customer records, so returning customers reuse their existing row. The first check rejects badly formatted numbers. The second makes the phone required for customers at the database level, while staff rows may leave it empty. |
+| `users` | `email` | `varchar(120)` | `CHECK (email IS NULL OR email ~ '^[^@[:space:]]+@[^@[:space:]]+$')` | Optional customer email under FR-01. |
+| `users` | `role` | `varchar(20)` | `NOT NULL DEFAULT 'customer', CHECK (role IN ('customer', 'staff'))` | Separates customer and staff roles. |
 | `services` | `id` | `integer GENERATED ALWAYS AS IDENTITY` | `PRIMARY KEY` | Unique identifier for a telecom service. |
 | `services` | `name` | `varchar(60)` | `NOT NULL UNIQUE` | Prevents duplicate service names and supports adding or renaming a service (FR-07). |
 | `services` | `is_active` | `boolean` | `NOT NULL DEFAULT TRUE` | Allows a service to be deactivated without deleting its records (FR-07, NFR-03). |
 | `tickets` | `id` | `bigint GENERATED ALWAYS AS IDENTITY` | `PRIMARY KEY` | Database-generated ticket number; prevents duplicate IDs for simultaneous joins (NFR-02). |
 | `tickets` | `user_id` | `integer` | `NOT NULL REFERENCES users(id) ON DELETE RESTRICT` | Connects a ticket to its customer; protects tickets if a user deletion is attempted (FR-01). |
 | `tickets` | `service_id` | `integer` | `NOT NULL REFERENCES services(id) ON DELETE RESTRICT` | Connects a ticket to its requested service; historical tickets cannot be removed by deleting that service (FR-01, NFR-03). |
-| `tickets` | `status` | `varchar(20)` | `NOT NULL DEFAULT 'waiting'`, `CHECK (status IN ('waiting', 'called', 'served', 'no-show', 'left'))` | Restricts statuses to the ticket states used by FR-02, FR-03, FR-05, and FR-06. |
+| `tickets` | `status` | `varchar(20)` | `NOT NULL DEFAULT 'waiting', CHECK (status IN ('waiting', 'called', 'served', 'no-show', 'left')), CHECK (status <> 'waiting' OR (called_at IS NULL AND assigned_counter IS NULL))` | Restricts statuses to the ticket states used by FR-02, FR-03, FR-05, and FR-06. |
 | `tickets` | `created_at` | `timestamptz` | `NOT NULL DEFAULT now()` | Records when a customer joined; supports queue ordering and calculated waiting duration (FR-02, FR-04). |
 | `tickets` | `called_at` | `timestamptz` | `NULL` | Records the time the ticket was called; remains `NULL` until that happens (FR-05). |
 | `tickets` | `assigned_counter` | `integer` | `CHECK (assigned_counter IS NULL OR assigned_counter > 0)` | Stores the counter when a ticket is called (FR-02, FR-05); may be `NULL` while waiting. |
 | `tickets` | `account_type` | `varchar(20)` | `CHECK (account_type IS NULL OR account_type IN ('prepaid', 'postpaid', 'business'))` | Planned for future FR-08 and FR-09; `NULL` until the account-type feature is implemented. |
 | `tickets` | `priority_reason` | `varchar(20)` | `CHECK (priority_reason IS NULL OR priority_reason IN ('senior citizen', 'PWD', 'pregnant'))` | Planned for future FR-10 and FR-11; `NULL` until priority requests are implemented. |
 
+**Table-level rule on `tickets`:**
+
+| Rule | Definition | Why |
+| --- | --- | --- |
+| One active ticket per user | `CREATE UNIQUE INDEX unique_active_ticket_per_user ON tickets (user_id) WHERE status IN ('waiting', 'called');` |  This rule ensures a double tap, a second tab or a retry cannot give one customer two places in line, so each customer can have only one active ticket at a time. Finished tickets (served, no-show, left) are not counted, so a customer can join again later. |
 
 ## Part 2d — Draw the ERD
 
@@ -66,7 +71,7 @@ Several requirements reuse the same tables and columns. In particular, account t
 
 2. **Services → Tickets (1:N):** One service can have many tickets, but each ticket belongs to exactly one service. The foreign key `tickets.service_id` references `services.id`.
 
-> **Note:** `account_type` and `priority_reason` are part of the schema, so they will exist in the database. However, no screen or route will use them this week, so they stay empty (`NULL`). They will be implemented in the succeeding weeks.
+> **Note:** `account_type` and `priority_reason` are part of the schema, so they will exist in the database. However, no screen or route will use them this week, so they stay empty (`NULL`). They will be implemented in the succeeding weeks. The ERD also does not show the partial unique index `unique_active_ticket_per_user` on `tickets (user_id)`.
 
 
 **Deletion Rules:**
