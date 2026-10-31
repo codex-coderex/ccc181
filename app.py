@@ -20,6 +20,7 @@ app.config["SQLALCHEMY_ECHO"] = os.environ.get("SQLALCHEMY_ECHO") == "1"
 db.init_app(app)
 migrate = Migrate(app, db)
 
+# Seeding starting services into database.
 @app.cli.command("seed")
 def seed():
     """Add the starting services if they are not there yet."""
@@ -39,90 +40,38 @@ def seed():
     db.session.commit()
     print("Services are ready.")
 
-# Telecom services
-SERVICES = [
-    {"id": 1, "name": "SIM & eSIM Registration"},
-    {"id": 2, "name": "SIM Card Replacement"},
-    {"id": 3, "name": "Line Activation"},
-    {"id": 4, "name": "Postpaid Mobile Applications"},
-    {"id": 5, "name": "Home Fiber Broadband Applications"},
-    {"id": 6, "name": "Bill Payment & Inquiry"},
-    {"id": 7, "name": "Technical Support & Diagnostics"},
-]
-
-# Sample data for the demo. A real app would load this from a database later.
-TICKETS = [
-    {
-        "number": 101,
-        "name": "Jason Santos",
-        "email": "jason.santos@example.com",
-        "mobile_num": "01234567890",
-        "service_id": 1,
-        "assigned_to": "Counter 1",
-        "status": "called",
-        "joined_at": datetime(2026, 10, 26, 2, 5),
-    },
-    {
-        "number": 102,
-        "name": "May Abbott",
-        "email": "may.abbott@example.com",
-        "mobile_num": "01234567890",
-        "service_id": 1,
-        "assigned_to": "pending",
-        "status": "waiting",
-        "joined_at": datetime(2026, 10, 26, 2, 12),
-    },
-    {
-        "number": 103,
-        "name": "John Doe",
-        "email": "john.doe@example.com",
-        "mobile_num": "01234567890",
-        "service_id": 5,
-        "assigned_to": "pending",
-        "status": "waiting",
-        "joined_at": datetime(2026, 10, 26, 2, 15),
-    },
-    {
-        "number": 104,
-        "name": "John Doe",
-        "email": "john.doe@example.com",
-        "mobile_num": "01234567890",
-        "service_id": 6,
-        "assigned_to": "pending",
-        "status": "waiting",
-        "joined_at": datetime(2026, 10, 26, 2, 15),
-    },
-]
 
 @app.route("/")
 def index():
     # render_template looks inside the templates/ folder and passes
     # keyword arguments to the template as variables.
-    return render_template("index.html", name="Jason", tickets=TICKETS)
+    return render_template("index.html")
 
 
+# All services helper
+def all_services():
+    return db.session.scalars(db.select(Service).order_by(Service.name)).all()
+
+# Join form routes
 @app.get("/join")
 def join_form():
-    return render_template("join.html", services=SERVICES, form={})
+    return render_template("join.html", services=all_services(), form={})
 
-# queue join form submission 
 
 @app.post("/join")
 def join():
     form = request.form
     name = form.get("name", "").strip()
-    mobile_num_raw = form.get("mobile_num", "").strip()
     email = form.get("email", "").strip().lower()
     service_id = form.get("service_id", type=int)
+    service = db.session.get(Service, service_id) if service_id else None
 
     errors = {}
-    if not name:
-        errors["name"] = "Enter your name."
+    if not name or len(name) > 80:
+        errors["name"] = "Enter your name (up to 80 characters)."
 
     phone = None
-    mobile_num_raw = form.get("mobile_num", "").strip()
-    digits = re.sub(r"[\s-]", "", mobile_num_raw)  # remove spaces and dashes
-
+    digits = re.sub(r"[\s-]", "", form.get("mobile_num", "").strip())
     if not digits:
         errors["mobile_num"] = "Enter your mobile number."
     else:
@@ -132,41 +81,64 @@ def join():
         else:
             phone = "0" + match.group(1)  # always 09XXXXXXXXX
 
-    if email and not re.fullmatch(r"[^@\s]+@[^@\s]+\.[^@\s]+", email):
+    if email and (len(email) > 120 or not re.fullmatch(r"[^@\s]+@[^@\s]+\.[^@\s]+", email)):
         errors["email"] = "Enter a valid email address, or leave it blank."
-
-    if service_id not in [s["id"] for s in SERVICES]:
+    if service is None:
         errors["service_id"] = "Choose a service."
 
     if errors:
         flash("Please fix the highlighted fields.", "danger")
-        return render_template("join.html", services=SERVICES, form=form, errors=errors), 400
+        return render_template("join.html", services=all_services(),
+                               form=form, errors=errors), 400
 
-    number = TICKETS[-1]["number"] + 1 if TICKETS else 1
-    TICKETS.append({
-        "number": number,
-        "name": name,
-        "email": email,
-        "mobile_num": phone,
-        "service_id": service_id,
-        "assigned_to": "pending",
-        "status": "waiting",
-        "joined_at": datetime.now(),
-    })
-    flash(f"You joined the queue. Your ticket is #{number}.", "success")
-    return redirect(url_for("ticket", ticket_id=number))
+    user = db.session.scalar(db.select(User).filter_by(phone=phone))
+    if user is not None:
+        active = db.session.scalar(
+            db.select(Ticket).filter(Ticket.user_id == user.id,
+                                     Ticket.status.in_(["waiting", "called"])))
+        if active is not None:
+            flash(f"You already have an active ticket (#{active.id}). "         
+                  "You cannot create a new ticket until your current ticket is completed.",
+                  "warning")
+            return redirect(url_for("ticket", ticket_id=active.id))
+    else:
+        user = User(name=name, phone=phone, email=email or None)
 
+    ticket_row = Ticket(user=user, service=service)
+    db.session.add(ticket_row)
+    try:
+        db.session.commit()
+    except IntegrityError:
+        db.session.rollback()
+        flash("Something went wrong saving your ticket. Please try again.", "danger")
+        return render_template("join.html", services=all_services(),
+                               form=form, errors={}), 409
 
+    flash(f"You joined the queue. Your ticket is #{ticket_row.id}.", "success")
+    return redirect(url_for("ticket", ticket_id=ticket_row.id))
+
+# Queue and ticket status routes (My place)
 @app.get("/queue/<int:ticket_id>")
 def ticket(ticket_id):
-    t = next((t for t in TICKETS if t["number"] == ticket_id), None)
-    if t is None:
-        abort(404)
-    ahead = [x for x in TICKETS
-             if x["status"] == "waiting"
-             and x["number"] < t["number"]]
-    service = next(s for s in SERVICES if s["id"] == t["service_id"])
-    return render_template("ticket.html", ticket=t, service=service,ahead=len(ahead), now=datetime.now())
+    t = db.get_or_404(Ticket, ticket_id)
+
+    ahead = db.session.scalar(
+        db.select(func.count())
+        .select_from(Ticket)
+        .where(
+            Ticket.service_id == t.service_id,
+            Ticket.status == "waiting",
+            Ticket.created_at < t.created_at
+        )
+    )
+
+    return render_template(
+        "ticket.html",
+        ticket=t,
+        service=t.service,
+        ahead=ahead,
+        now=datetime.now()
+    )
 
 
 @app.post("/queue/<int:ticket_id>/leave")
@@ -180,7 +152,6 @@ def leave(ticket_id):
 
 
 # staff dashboard and actions
-
 @app.template_filter("minutes_since")
 def minutes_since(dt):
     return int((datetime.now() - dt).total_seconds() // 60)

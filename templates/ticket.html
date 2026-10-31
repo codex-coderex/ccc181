@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Ticket #{{ ticket.number }} · SignalQ{% endblock %}
+{% block title %}Ticket #{{ ticket.id }} · SignalQ{% endblock %}
 
 {% block content %}
 <div class="row justify-content-center">
@@ -10,7 +10,7 @@
       <div class="card-body p-4">
 
         <p class="ticket-label mb-1">Your ticket</p>
-        <h1 class="display-1 fw-bold mb-2">#{{ ticket.number }}</h1>
+        <h1 class="display-1 fw-bold mb-2">#{{ ticket.id }}</h1>
 
         <div id="live-status" aria-live="polite" class="mb-3">
           <span class="badge status-pill status-{{ ticket.status }}">{{ ticket.status|replace('-', ' ')|upper }}</span>
@@ -56,7 +56,7 @@
             <span>Email:</span><span class="text-end text-break">{{ ticket.email or '—' }}</span>
           </div>
           <div class="d-flex justify-content-between gap-3">
-            <span>Joined At:</span><span class="text-end">{{ ticket.joined_at.strftime('%I:%M %p') }}</span>
+            <span>Joined At:</span><span class="text-end">{{ ticket.created_at.strftime('%I:%M %p') }}</span>
           </div>
         </div>
 
@@ -69,7 +69,7 @@
     </div>
 
     {% if ticket.status in ['waiting', 'called'] %}
-       <form method="post" action="{{ url_for('leave', ticket_id=ticket.number) }}" class="leave-wrap" id="leave-form"
+       <form method="post" action="{{ url_for('leave', ticket_id=ticket.id) }}" class="leave-wrap" id="leave-form"
             onsubmit="return confirm('Leave the queue? You will lose your place.')">
         <button type="submit" class="btn btn-outline-danger w-100">Leave queue</button>
        </form>
@@ -81,7 +81,7 @@
 
 {% block scripts %}
 <script>
-  const statusUrl = "{{ url_for('ticket_status', ticket_id=ticket.number) }}";
+  const statusUrl = "{{ url_for('ticket_status', ticket_id=ticket.id) }}";
 
   const messages = {
     called:    "<strong>You are being called.</strong>",
