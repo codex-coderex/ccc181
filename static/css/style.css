@@ -306,7 +306,7 @@ footer {
 .queue-item form { flex: 0 0 auto; }
 
 /* laptop and up */
-@media (min-width: 768px) {
+@media (min-width: 992px) {
   .serving {
     grid-template-columns: auto 1fr 200px;
     align-items: center;
