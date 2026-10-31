@@ -22,8 +22,8 @@ After Michael finishes assisting a customer with their query regarding bill paym
 | --- | --- | --- |
 | See each waiting ticket's number, service and status | Staff dashboard | FR-04 |
 | Call the next ticket to his counter | Staff dashboard | FR-05 |
-| Mark a ticket as served | Staff dashboard | FR-05 |
-| Mark a ticket as a no-show | Staff dashboard | FR-05 |
+| Mark a ticket as served | Staff dashboard | FR-06 |
+| Mark a ticket as a no-show | Staff dashboard | FR-06 |
 
 ### What this means for my interface
 

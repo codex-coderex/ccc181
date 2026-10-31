@@ -2,6 +2,8 @@
 
 SignalQ is a queue management system for a telecom service center. Customers get a ticket for services like SIM registration, SIM replacement, line activation, postpaid and fiber applications, bill payment and technical support. They can check their place in line from any device. Staff see the waiting list, call the next ticket, and mark customers as served or no-show.
 
+Full Requirements: [docs/requirements.md](docs/requirements.md)
+
 ## How to run
 
 ```bash

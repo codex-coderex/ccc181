@@ -92,11 +92,16 @@ def join():
     if not name:
         errors["name"] = "Enter your name."
 
-    digits = re.sub(r"[\s-]", "", mobile_num)  # allow spaces and dashes
-    if not mobile_num:
+    raw = form.get("mobile_num", "").strip()
+    digits = re.sub(r"[\s-]", "", raw)  # allow spaces and dashes
+
+    match = re.fullmatch(r"(?:\+?63|0)(9[0-9]{9})", digits)
+    if not digits:
         errors["mobile_num"] = "Enter your mobile number."
-    elif not re.fullmatch(r"\+?\d{10,13}", digits):
+    elif match is None:
         errors["mobile_num"] = "Enter a valid mobile number, like 09171234567."
+    else:
+        phone = "0" + match.group(1)  # always saved as 09XXXXXXXXX
 
     if email and not re.fullmatch(r"[^@\s]+@[^@\s]+\.[^@\s]+", email):
         errors["email"] = "Enter a valid email address, or leave it blank."
@@ -113,7 +118,7 @@ def join():
         "number": number,
         "name": name,
         "email": email,
-        "mobile_num": digits,
+        "mobile_num": phone,
         "service_id": service_id,
         "assigned_to": "pending",
         "status": "waiting",
