@@ -20,6 +20,25 @@ app.config["SQLALCHEMY_ECHO"] = os.environ.get("SQLALCHEMY_ECHO") == "1"
 db.init_app(app)
 migrate = Migrate(app, db)
 
+@app.cli.command("seed")
+def seed():
+    """Add the starting services if they are not there yet."""
+    starting_services = [
+        "SIM & eSIM Registration",
+        "SIM Card Replacement",
+        "Line Activation",
+        "Postpaid Mobile Applications",
+        "Home Fiber Broadband Applications",
+        "Bill Payment & Inquiry",
+        "Technical Support & Diagnostics",
+    ]
+    for name in starting_services:
+        exists = db.session.scalar(db.select(Service).filter_by(name=name))
+        if exists is None:
+            db.session.add(Service(name=name))
+    db.session.commit()
+    print("Services are ready.")
+
 # Telecom services
 SERVICES = [
     {"id": 1, "name": "SIM & eSIM Registration"},
