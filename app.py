@@ -1,6 +1,6 @@
 import os
 import re
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 
 from dotenv import load_dotenv
 from flask import Flask, abort, flash, redirect, render_template, request, url_for
@@ -19,6 +19,27 @@ app.config["SQLALCHEMY_ECHO"] = os.environ.get("SQLALCHEMY_ECHO") == "1"
 
 db.init_app(app)
 migrate = Migrate(app, db)
+
+# Timezones and Time calculations
+PH_TIME = timezone(timedelta(hours=8))
+
+@app.template_filter("local")
+def local_time(value):
+    """Display a database timestamp in Philippine time."""
+    return value.astimezone(PH_TIME).strftime("%b %d, %I:%M %p") if value else ""
+
+@app.template_filter("waiting_time")
+def waiting_time(created_at):
+    total_seconds = max(0, int(
+        (datetime.now(timezone.utc) - created_at).total_seconds()
+    ))
+
+    minutes, seconds = divmod(total_seconds, 60)
+
+    if minutes == 0:
+        return f"{seconds} seconds"
+
+    return f"{minutes} min {seconds} sec"
 
 # Seeding starting services into database.
 @app.cli.command("seed")
@@ -117,68 +138,121 @@ def join():
     flash(f"You joined the queue. Your ticket is #{ticket_row.id}.", "success")
     return redirect(url_for("ticket", ticket_id=ticket_row.id))
 
+
 # Queue and ticket status routes (My place)
+def people_ahead(t):
+    """Count tickets still waiting for the same service that joined before t."""
+    stmt = (db.select(func.count())
+            .select_from(Ticket)
+            .where(
+                Ticket.service_id == t.service_id,
+                Ticket.status == "waiting",
+                (Ticket.created_at < t.created_at) |
+                    (
+                        (Ticket.created_at == t.created_at) &
+                        (Ticket.id < t.id)
+                    )
+                )
+            )
+    return db.session.scalar(stmt)
+
 @app.get("/queue/<int:ticket_id>")
 def ticket(ticket_id):
     t = db.get_or_404(Ticket, ticket_id)
-
-    ahead = db.session.scalar(
-        db.select(func.count())
-        .select_from(Ticket)
-        .where(
-            Ticket.service_id == t.service_id,
-            Ticket.status == "waiting",
-            Ticket.created_at < t.created_at
-        )
-    )
 
     return render_template(
         "ticket.html",
         ticket=t,
         service=t.service,
-        ahead=ahead,
-        now=datetime.now()
+        ahead=people_ahead(t),
+        now=datetime.now(PH_TIME)
     )
-
 
 @app.post("/queue/<int:ticket_id>/leave")
 def leave(ticket_id):
-    t = next((t for t in TICKETS if t["number"] == ticket_id), None)
-    if t is None:
-        abort(404)
-    t["status"] = "left"
+    t = db.get_or_404(Ticket, ticket_id)
+
+    if t.status != "waiting":
+        flash("This ticket can no longer leave the queue.", "warning")
+        return redirect(url_for("ticket", ticket_id=t.id))
+
+    t.status = "left"
+    db.session.commit()
+
     flash("You left the queue.", "info")
     return redirect(url_for("index"))
 
 
-# staff dashboard and actions
-@app.template_filter("minutes_since")
-def minutes_since(dt):
-    return int((datetime.now() - dt).total_seconds() // 60)
+@app.get("/queue/<int:ticket_id>/status.json")
+def ticket_status(ticket_id):
+    t = db.get_or_404(Ticket, ticket_id)
+    return {"status": t.status, 
+            "ahead": people_ahead(t),
+            "assigned_counter": t.assigned_counter,
+        }
 
 
+# Staff dashboard and actions
 @app.get("/staff")
 def staff_dashboard():
     service_id = request.args.get("service_id", type=int)
     q = request.args.get("q", "").strip().lower()
 
-    waiting = [t for t in TICKETS if t["status"] == "waiting"]
+    services = all_services()
+
+    # All waiting tickets
+    waiting = db.session.scalars(
+        db.select(Ticket)
+        .where(Ticket.status == "waiting")
+        .order_by(Ticket.created_at, Ticket.id)
+    ).all()
+
+    # Overall waiting count
     total_waiting = len(waiting)
-    counts = {s["id"]: len([t for t in waiting if t["service_id"] == s["id"]])
-              for s in SERVICES}
 
+    # Waiting tickets per service
+    counts = {
+        s.id: sum(1 for t in waiting if t.service_id == s.id)
+        for s in services
+    }
+
+    # Filter by service
     if service_id:
-        waiting = [t for t in waiting if t["service_id"] == service_id]
-    if q:
-        waiting = [t for t in waiting
-                   if q in t["name"].lower() or q in str(t["number"])]
+        waiting = [t for t in waiting if t.service_id == service_id]
 
-    serving = next((t for t in TICKETS if t["status"] == "called"), None)
-    names = {s["id"]: s["name"] for s in SERVICES}
-    done = next((t for t in TICKETS if t["number"] == request.args.get("done", type=int)), None)
-    return render_template("staff.html", serving=serving, done=done, waiting=waiting,
-                       total_waiting=total_waiting, services=SERVICES,
-                       names=names, counts=counts, selected=service_id, q=q)
+    # Search by name or ticket number
+    if q:
+        waiting = [
+            t for t in waiting
+            if q in t.user.name.lower() or q in str(t.id)
+        ]
+
+    # Currently called ticket
+    serving = db.session.scalar(
+        db.select(Ticket)
+        .where(Ticket.status == "called")
+        .order_by(Ticket.created_at)
+    )
+
+    # Service names
+    names = {s.id: s.name for s in services}
+
+    # Recently completed ticket
+    done_id = request.args.get("done", type=int)
+    done = db.session.get(Ticket, done_id) if done_id else None
+
+    return render_template(
+        "staff.html",
+        serving=serving,
+        done=done,
+        waiting=waiting,
+        total_waiting=total_waiting,
+        services=services,
+        names=names,
+        counts=counts,
+        selected=service_id,
+        q=q
+    )
 
 
 @app.post("/staff/call-next")
@@ -216,18 +290,6 @@ def staff_action(ticket_id, action):
     flash(f"Ticket #{ticket_id} marked {new_status}.", "info")
     done = None if new_status == "called" else ticket_id
     return redirect(url_for("staff_dashboard", done=done))
-
-
-@app.get("/queue/<int:ticket_id>/status.json")
-def ticket_status(ticket_id):
-    t = next((t for t in TICKETS if t["number"] == ticket_id), None)
-    if t is None:
-        abort(404)
-    ahead = sum(1 for x in TICKETS
-                if x["status"] == "waiting"
-                and x["number"] < t["number"])
-    return {"status": t["status"], "ahead": ahead,
-            "assigned_to": t["assigned_to"]}
 
 
 @app.route("/hello")

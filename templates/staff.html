@@ -20,24 +20,24 @@
     <div class="serving">
       <div class="serving-ticket d-none d-md-block">
         <span class="ticket-label">Ticket no.</span>
-        <strong class="serving-ticket-number">{% if serving %}#{{ serving.number }}{% else %}-{% endif %}</strong>
+        <strong class="serving-ticket-number">{% if serving %}#{{ serving.id }}{% else %}-{% endif %}</strong>
       </div>
 
       <div class="serving-body">
         {% if serving %}
-          <p class="serving-number d-md-none">#{{ serving.number }}</p>
-          <p class="serving-name">{{ serving.name }}</p>
+          <p class="serving-number d-md-none">#{{ serving.id }}</p>
+          <p class="serving-name">{{ serving.user.name }}</p>
           <dl class="serving-details">
-            <div><dt>Mobile Number:</dt><dd>{{ serving.mobile_num }}</dd></div>
-            <div><dt>Email:</dt><dd class="text-break">{{ serving.email or '—' }}</dd></div>
-            <div><dt>Service:</dt><dd>{{ names[serving.service_id] }}</dd></div>
-            <div><dt>Time Waited:</dt><dd>{{ serving.joined_at|minutes_since }} min</dd></div>
+            <div><dt>Mobile Number:</dt><dd>{{ serving.user.phone }}</dd></div>
+            <div><dt>Email:</dt><dd class="text-break">{{ serving.user.email or '—' }}</dd></div>
+            <div><dt>Service:</dt><dd>{{ serving.service.name }}</dd></div>
+            <div><dt>Time Waited:</dt><dd>{{ serving.created_at|waiting_time }} </dd></div>
           </dl>
         {% else %}
             {% if done and done.status == 'served' %}
-                <p class="serving-name">Served Ticket #{{ done.number }}</p>
+                <p class="serving-name">Served Ticket #{{ done.id }}</p>
             {% elif done and done.status == 'no-show' %}
-                <p class="serving-name">Ticket #{{ done.number }} marked no-show</p>
+                <p class="serving-name">Ticket #{{ done.id }} marked no-show</p>
             {% else %}
                 <p class="serving-name">Nobody is being served right now.</p>
             {% endif %}
@@ -47,13 +47,13 @@
 
       <div class="serving-actions">
         {% if serving %}
-          {{ post_btn(url_for('staff_action', ticket_id=serving.number, action='serve'),
+          {{ post_btn(url_for('staff_action', ticket_id=serving.id, action='serve'),
                       'Mark Served', 'btn-outline-primary',
-                      'Mark ticket %d as served'|format(serving.number)) }}
-          {{ post_btn(url_for('staff_action', ticket_id=serving.number, action='no-show'),
+                      'Mark ticket %d as served'|format(serving.id)) }}
+          {{ post_btn(url_for('staff_action', ticket_id=serving.id, action='no-show'),
                       'No Show', 'btn-outline-danger',
-                      'Mark ticket %d as no-show'|format(serving.number),
-                      confirm='Mark ticket #%d as no-show?'|format(serving.number)) }}
+                      'Mark ticket %d as no-show'|format(serving.id),
+                      confirm='Mark ticket #%d as no-show?'|format(serving.id)) }}
         {% else %}
           <form method="post" action="{{ url_for('call_next') }}">
             <input type="hidden" name="service_id" value="{{ selected or '' }}">
@@ -110,20 +110,20 @@
           <tbody>
             {% for t in waiting %}
             <tr>
-              <th scope="row">#{{ t.number }}</th>
-              <td>{{ t.name }}</td>
-              <td>{{ names[t.service_id] }}</td>
-              <td>{{ t.joined_at|minutes_since }} min</td>
+              <th scope="row">#{{ t.id }}</th>
+              <td>{{ t.user.name }}</td>
+              <td>{{ t.service.name }}</td>
+              <td>{{ t.created_at|waiting_time }} </td>
               <td><span class="badge status-pill status-sm status-{{ t.status }}">{{ t.status|upper }}</span></td>
               <td>
                 <div class="row-actions">
-                    {{ post_btn(url_for('staff_action', ticket_id=t.number, action='call'),
+                    {{ post_btn(url_for('staff_action', ticket_id=t.id, action='call'),
                                 'Call to counter', 'btn-sm btn-outline-primary text-uppercase',
-                                'Call ticket %d to counter'|format(t.number), serving is not none) }}
-                    {{ post_btn(url_for('staff_action', ticket_id=t.number, action='no-show'),
+                                'Call ticket %d to counter'|format(t.id), serving is not none) }}
+                    {{ post_btn(url_for('staff_action', ticket_id=t.id, action='no-show'),
                                 'No-show', 'btn-sm btn-outline-danger text-uppercase',
-                                'Mark ticket %d as no-show'|format(t.number),
-                                confirm='Mark ticket #%d as no-show?'|format(t.number)) }}
+                                'Mark ticket %d as no-show'|format(t.id),
+                                confirm='Mark ticket #%d as no-show?'|format(t.id)) }}
                 </div>
                </td>
             </tr>
@@ -140,19 +140,19 @@
   <ul class="queue-list list-unstyled d-md-none mb-0">
     {% for t in waiting %}
     <li class="queue-item">
-      <span class="queue-item-number">#{{ t.number }}</span>
+      <span class="queue-item-number">#{{ t.id }}</span>
       <span class="queue-item-info">
-        <strong>{{ t.name }}</strong><br>
-        {{ names[t.service_id] }} · {{ t.joined_at|minutes_since }} min
+        <strong>{{ t.user.name }}</strong><br>
+        {{ t.service.name }} · {{ t.created_at|waiting_time }}
       </span>
       <div class="queue-item-actions">
-        {{ post_btn(url_for('staff_action', ticket_id=t.number, action='call'),
+        {{ post_btn(url_for('staff_action', ticket_id=t.id, action='call'),
                     'Call', 'btn-sm btn-outline-primary',
-                    'Call ticket %d to counter'|format(t.number), serving is not none) }}
-        {{ post_btn(url_for('staff_action', ticket_id=t.number, action='no-show'),
+                    'Call ticket %d to counter'|format(t.id), serving is not none) }}
+        {{ post_btn(url_for('staff_action', ticket_id=t.id, action='no-show'),
                     'No-show', 'btn-sm btn-outline-danger',
-                    'Mark ticket %d as no-show'|format(t.number),
-                    confirm='Mark ticket #%d as no-show?'|format(t.number)) }}
+                    'Mark ticket %d as no-show'|format(t.id),
+                    confirm='Mark ticket #%d as no-show?'|format(t.id)) }}
        </div>
     </li>
     {% else %}
