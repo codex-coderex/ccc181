@@ -21,14 +21,16 @@
   <form method="post"
         action="{{ url_for('service_create') }}"
         class="d-flex gap-2 mb-4">
+    <label for="new-service-name" class="form-label">Service Name</label>
     <input type="text"
            name="name"
+           id=""new-service-name"
            class="form-control"
            placeholder="New service name"
            maxlength="60"
            aria-label="New service name"
            required>
-    <button type="submit" class="btn btn-primary flex-shrink-0">
+    <button type="submit" class="btn btn-primary flex-shrink-0 align-self-end">
       Add Service
     </button>
   </form>

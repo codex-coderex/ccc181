@@ -12,11 +12,11 @@
           <p class="mb-0">Fill out your details to get in line.</p>
         </div>
 
-        <form method="post" action="{{ url_for('join') }}" novalidate id="join-form">
+        <form method="post" action="{{ url_for('join') }}" id="join-form">
 
           <div class="mb-3">
             <label for="name" class="form-label fw-semibold">Full Name <span aria-hidden="true">*</span></label>
-            <input id="name" name="name" type="text" autocomplete="name" required
+            <input id="name" name="name" type="text" autocomplete="name" required maxlength="80"
                    placeholder="John Doe"
                    class="form-control {% if errors and errors.name %}is-invalid{% endif %}"
                    value="{{ form.get('name', '') }}"
@@ -40,7 +40,7 @@
 
           <div class="mb-3">
             <label for="email" class="form-label fw-semibold">Email Address <span class="fw-normal text-body-secondary">(optional)</span></label>
-            <input id="email" name="email" type="email" autocomplete="email"
+            <input id="email" name="email" type="email" autocomplete="email" maxlength="120"
                    placeholder="john.doe@example.com"
                    class="form-control {% if errors and errors.email %}is-invalid{% endif %}"
                    value="{{ form.get('email', '') }}"
