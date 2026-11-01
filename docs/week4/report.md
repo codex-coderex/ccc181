@@ -11,7 +11,7 @@
 | **Student ID** | 2024-0480 |
 | **Section** | CS3B |
 | **Date** | November 1, 2026 |
-| **Pull Request** | [PR link] |
+| **Pull Request** | https://github.com/codex-coderex/ccc181/pull/4 |
 
 ## 2. Requirements
 
