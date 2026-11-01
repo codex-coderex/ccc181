@@ -11,16 +11,17 @@
 | ID | Requirement | Priority | Stores Data? | Status |
 | --- | --- | --- | --- | --- |
 | FR-01 | A customer can join the queue by entering their name, phone number, email (optional), and service required. | Must | Yes | Built (Week 3) |
-| FR-02 ★ | A customer can see their ticket number, service, status, position, assigned counter, and how long they have been waiting. | Must | Yes | Built (Week 3);  waiting duration pending |
+| FR-02 ★ | A customer can see their ticket number, service, status, position, assigned counter, and how long they have been waiting. | Must | Yes | Built (Week 3);  Waiting Duration Built (Week 4)|
 | FR-03 | A customer can voluntarily leave the queue. | Must | Yes | Built (Week 3) |
 | FR-04 | A staff member can view all active waiting and called tickets with number, service type, and status in the order they joined. | Must | Yes | Built (Week 3) |
 | FR-05 | A staff member can call a waiting ticket to their counter. | Must | Yes | Built (Week 3) |
 | FR-06 | A staff member can mark a ticket as served or a no-show. _(Split from FR-05)_ | Must | Yes | Built (Week 3) |
-| FR-07 | A staff member can add, rename, and deactivate a service. Deactivated services cannot accept new tickets, but existing tickets can still be served. | Must | Yes | This week |
+| FR-07 | A staff member can add, rename, and deactivate a service. Deactivated services cannot accept new tickets, but existing tickets can still be served. | Must | Yes | Built (Week 4)|
 | FR-08 ★ | A customer can choose an account type (prepaid, postpaid or business) when joining the queue. | Should | Yes | Later |
 | FR-09 ★ | A staff member can see each ticket’s account type next to its service on the dashboard. | Should | Yes | Later |
 | FR-10 ★ | A customer can request priority when joining the queue by choosing a reason (senior citizen, PWD or pregnant). | Could | Yes | Later |
 | FR-11 | A staff member can see which waiting tickets are priority. | Could | Yes | Later |
+| FR-12 | A staff member can permanently delete a ticket created by mistake. | Must | Yes | Built (Week 4) |
 
 
 ## Non-functional Requirements
@@ -39,7 +40,7 @@
 
 ## MVP
 
-**MVP:** FR-01 to FR-07 and the **Must** NFRs (_NFR-01 to NFR-03_ and _NFR-06 to NFR-08_).
+**MVP:** FR-01 to FR-07 and FR-12, the **Must** NFRs (_NFR-01 to NFR-03_ and _NFR-06 to NFR-08_), and NFR-04.
 
 This is the smallest version that still solves the problem: a customer can join with the service they need, see how many people are ahead and step out without losing their turn, and staff can see the service on each ticket, call it, and record the outcome. The remaining *Should* and *Could* rows improve the queue but do not change whether a customer can wait remotely.
 

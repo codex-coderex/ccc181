@@ -120,7 +120,10 @@
               <th scope="row">#{{ t.id }}</th>
               <td>{{ t.user.name }}</td>
               <td>{{ t.service.name }}</td>
-              <td>{{ t.created_at|waiting_time }} </td>
+              <td class="live-wait-time"
+                  data-joined-at="{{ t.created_at.isoformat() }}">
+                {{ t.created_at|waiting_time }}
+              </td>
               <td><span class="badge status-pill status-sm status-{{ t.status }}">{{ t.status|upper }}</span></td>
               <td>
                 <div class="row-actions">
@@ -155,7 +158,11 @@
       <span class="queue-item-number">#{{ t.id }}</span>
       <span class="queue-item-info">
         <strong>{{ t.user.name }}</strong><br>
-        {{ t.service.name }} · {{ t.created_at|waiting_time }}
+        {{ t.service.name }} ·
+        <span class="live-wait-time"
+              data-joined-at="{{ t.created_at.isoformat() }}">
+          {{ t.created_at|waiting_time }}
+        </span>
       </span>
       <div class="queue-item-actions">
         {{ post_btn(url_for('staff_action', ticket_id=t.id, action='call'),
@@ -177,4 +184,12 @@
     {% endfor %}
   </ul>
 </section>
+<div id="staff-queue-state"
+     data-state="{{ (
+       waiting | map(attribute='id') | list,
+       serving.id if serving else none,
+       total_waiting
+     ) | tojson }}"
+     hidden>
+  </div>
 {% endblock %}

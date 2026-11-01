@@ -259,6 +259,38 @@ def staff_dashboard():
         q=q
     )
 
+# Listens to queue state in db
+@app.get("/staff/queue-state.json")
+def staff_queue_state():
+    service_id = request.args.get("service_id", type=int)
+    q = request.args.get("q", "").strip().lower()
+
+    stmt = (
+        db.select(Ticket)
+        .where(Ticket.status == "waiting")
+        .order_by(Ticket.created_at, Ticket.id)
+    )
+
+    if service_id:
+        stmt = stmt.where(Ticket.service_id == service_id)
+
+    waiting = db.session.scalars(stmt).all()
+
+    if q:
+        waiting = [
+            t for t in waiting
+            if q in t.user.name.lower() or q in str(t.id)
+        ]
+
+    serving = db.session.scalar(
+        db.select(Ticket).where(Ticket.status == "called")
+    )
+
+    return {
+        "waiting_ids": [t.id for t in waiting],
+        "serving_id": serving.id if serving else None,
+    }
+
 
 @app.post("/staff/call-next")
 def call_next():

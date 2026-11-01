@@ -17,12 +17,13 @@ The table below maps the data-storing functional requirements to database tables
 | FR-09 ★ | A **staff member** can see each **ticket**’s **account type** next to its **service** on the **dashboard**. | Staff member, ticket, account type, service, dashboard | `users`, `tickets.account_type`, `tickets.service_id`; dashboard is UI |
 | FR-10 ★ | A **customer** can request **priority** when joining the **queue** by choosing a **reason** (senior citizen, PWD or pregnant). | Customer, priority, queue, reason | `users`, `tickets.priority_reason` |
 | FR-11 | A **staff member** can see which waiting **tickets** are **priority**. | Staff member, tickets, priority | `users`, `tickets.status`, `tickets.priority_reason` |
+| FR-12 | A **staff member** can permanently delete a **ticket** created by mistake. | Staff member, ticket | `tickets` (the selected ticket row is permanently removed) |
 
 Several requirements reuse the same tables and columns. In particular, account type is stored once for FR-08 and FR-09, while priority reason is stored once for FR-10 and FR-11.
 
 ## Part 2b — List the tables and columns
 
-| Table | Purpose |
+| Table | Columns |
 | --- | --- |
 | users | id, name, phone, email, role |
 | services | id, name, is_active |
@@ -60,7 +61,7 @@ Several requirements reuse the same tables and columns. In particular, account t
 | Rule | Definition | Why |
 | --- | --- | --- |
 | One active ticket per user | `CREATE UNIQUE INDEX unique_active_ticket_per_user ON tickets (user_id) WHERE status IN ('waiting', 'called');` |  This rule ensures a double tap, a second tab or a retry cannot give one customer two places in line, so each customer can have only one active ticket at a time. Finished tickets (served, no-show, left) are not counted, so a customer can join again later. |
-| Prevent case-insensitive duplicate service names | `UNIQUE INDEX unique_service_name_ci ON lower(name)` | prevents duplicate service names regardless of capitalization.` |
+| Prevent case-insensitive duplicate service names | `CREATE UNIQUE INDEX unique_service_name_ci ON services (lower(name));` | prevents duplicate service names regardless of capitalization. |
 
 ## Part 2d — Draw the ERD
 

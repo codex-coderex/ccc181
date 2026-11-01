@@ -40,6 +40,7 @@ Tested PostgreSQL constraints directly using `psql`, bypassing Flask. Each inval
 | Nonblank service name (CHECK) | Database | Insert service with name `'   '` | ![10c_vtest_4](screenshots/10c-4.png) |
 | Customer name required (NOT NULL) | Database | Insert user without a name | ![10c_vtest_5](screenshots/10c-5.png) |
 | Preserve ticket history (RESTRICT) | Database | Delete a service that has tickets | ![10c_vtest_6](screenshots/10c-6.png) |
+| One active ticket per customer (UNIQUE partial index) | Database | Inserted a second waiting ticket for a customer who already had an active ticket | ![10c_vtest_7](screenshots/10c-7.png) |
 
 
 ## 10d. SQL Safety

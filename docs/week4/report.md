@@ -19,7 +19,7 @@ SignalQ has **12 functional requirements (FR-01 to FR-12)** and **9 non-function
 
 **MVP:** FR-01 to FR-07, FR-12, NFR-01 to NFR-04, and NFR-06 to NFR-08. It is the smallest version of SignalQ that allows telecom customers to join a queue, view their ticket status and position, and leave when necessary, while staff can manage tickets and services through a reliable database that preserves records after restarting.
 
-**Feedback from a person in the setting:** Tester of the MVP did not have any trouble in navigating the application. However, he did tell me that customers should also have a view of their own waiting time.
+**Feedback from a person in the setting:** Tester of the MVP did not have any trouble in navigating the application. However, they did tell me that customers should also have a view of their own waiting time.
 
 **Changes made:** Based on this feedback, I revised FR-02 so that the My place page shows how long the customer has been waiting, in addition to their ticket number, service, status, position, and assigned counter.
 
@@ -29,7 +29,7 @@ See [Requirements](../requirements.md).
 
 ![SignalQ ERD](erd.png)
 
-SignalQ has three related tables:
+SignalQ has three related tables and two relationships:
 
 - **Users → Tickets (1:N):** One customer can have multiple tickets over time, but each ticket belongs to one customer.
 - **Services → Tickets (1:N):** One service can have multiple tickets, but each ticket belongs to one service.
@@ -172,7 +172,7 @@ SignalQ uses three validation layers:
 - **Flask:** Server-side validation rejects invalid requests, including malformed input and inactive services.
 - **PostgreSQL:** Database constraints enforce foreign keys, uniqueness, valid values, and deletion restrictions.
 
-Three invalid Flask requests returned HTTP 400, and PostgreSQL rejected the six invalid operations, tested in Part 10b and 10c.
+Three invalid Flask requests returned HTTP 400, and PostgreSQL rejected the seven invalid operations, tested in Part 10b and 10c.
 
 **Most useful error:** The `unique_active_ticket_per_user` violation demonstrated that a customer cannot hold two active tickets, even when requests bypass Flask.
 
@@ -192,15 +192,38 @@ See [Validation Results](validation.md).
 
 ![Database after restart](screenshots/11a-4-after.png)
 
+**Restart:** After restarting, the tickets, statuses, and timestamps survived in the database without errors.
+
 **Rebuild from scratch:** After deleting the Docker database volume and rebuilding the database using flask and seed data, all tables and seven services were successfully restored. I was able to join the queue, view the ticket on the Staff Dashboard, and access Manage Services without errors.
 
 See [Persistence Test](persistence.md).
 
 ## 11. Reflection
 
-**Hardest part of the week:** The hardest part of this week's work was designing the constraints for the database. The idea was to make them strict enough to ensure that the data is secure in case the validation process in the front end does not take place; however, at the same time, I did not want to make it too complex for it to become a hindrance. I went through my schema many times, and some things that I had missed included blanks in names, waiting tickets with call details, and one customer having two active tickets.
+**Hardest part of the week:** The hardest part of this week's work was designing the constraints for the database. The idea was to make them strict enough to ensure that the data is secure and valid in case the validation process in the front end does not take place; however, at the same time, I did not want to make it too complex for it to become a hindrance. I went through my schema many times, and some things that I had missed included blanks in names, waiting tickets with call details, and one customer having two active tickets.
 
-**Hardest requirement to make testable:**  NFR-02, which requires that tickets who join simultaneously never produce duplicate ticket numbers. It is hard to test because a race condition cannot be triggered reliably by clicking in a browser. 
+**Hardest requirement to make testable:** NFR-02, all customers registering at the same time must get different ticket numbers. It was difficult to check such requirements manually using browser clicks. I decided to use an AI-generated pgbench script with 10 clients running 20 transactions each (total of 200 transactions). The goal of this test was to check the behavior of PostgreSQL when assigning ticket IDs in case of multiple inserts. The PostgreSQL’s identity column is expected to assign unique ticket numbers, but there should be additional checks for transactions results.
+
+**The script used**
+```powershell
+# Create the SQL script
+@'
+\set uid random(100000000, 999999999)
+WITH new_user AS (
+    INSERT INTO users (name, phone)
+    VALUES (
+        'Race Test',
+        '09' || :uid
+    )
+    RETURNING id
+)
+INSERT INTO tickets (user_id, service_id)
+SELECT id, 1 FROM new_user;
+'@ -replace "`r","" | docker exec -i signalq-db sh -c "cat > /tmp/race.sql"
+
+# Run 200 transactions using 10 concurrent clients
+docker exec signalq-db pgbench -U signalq -d signalq -c 10 -j 4 -t 20 -n -f /tmp/race.sql
+```
 
 **One report your staff persona would want from this data:** Michael would want a report of no-shows per service per day, next to the average time from `created_at` to `called_at` for each service. No-shows are the main reason his counter sits idle, so seeing which services and times of day have the most of them would help him and his supervisor decide when to call the next ticket early. The report uses only data SignalQ already stores: `status`, `service_id`, `created_at`, and `called_at`.
 
