@@ -327,9 +327,18 @@ footer {
 
 .row-actions {
   display: flex;
+  align-items: stretch;
   gap: 0.5rem;
 }
-.row-actions form { flex: 1; }
+
+.row-actions form {
+  flex: 1;
+  display: flex;
+}
+
+.row-actions .btn {
+  width: 100%;
+}
 
 .queue-item-actions {
   display: flex;
