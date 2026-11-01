@@ -51,6 +51,7 @@ class Service(db.Model):
     tickets: Mapped[list["Ticket"]] = relationship(back_populates="service")
 
     __table_args__ = (
+        CheckConstraint("btrim(name) <> ''", name="services_name_not_blank"),
         Index("unique_service_name_ci", func.lower(name), unique=True),
     )
 

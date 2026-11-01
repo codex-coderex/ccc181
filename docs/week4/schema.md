@@ -43,7 +43,7 @@ Several requirements reuse the same tables and columns. In particular, account t
 | `users` | `email` | `varchar(120)` | `CHECK (email IS NULL OR email ~ '^[^@[:space:]]+@[^@[:space:]]+$')` | Optional customer email under FR-01. |
 | `users` | `role` | `varchar(20)` | `NOT NULL DEFAULT 'customer', CHECK (role IN ('customer', 'staff'))` | Separates customer and staff roles. |
 | `services` | `id` | `integer GENERATED ALWAYS AS IDENTITY` | `PRIMARY KEY` | Unique identifier for a telecom service. |
-| `services` | `name` | `varchar(60)` | `NOT NULL UNIQUE` | Prevents duplicate service names and supports adding or renaming a service (FR-07). |
+| `services` | `name` | `varchar(60)` | `NOT NULL UNIQUE, CHECK (btrim(name) <> '') ` | Prevents duplicate service names and supports adding or renaming a service (FR-07). |
 | `services` | `is_active` | `boolean` | `NOT NULL DEFAULT TRUE` | Allows a service to be deactivated without deleting its records (FR-07, NFR-03). |
 | `tickets` | `id` | `bigint GENERATED ALWAYS AS IDENTITY` | `PRIMARY KEY` | Database-generated ticket number; prevents duplicate IDs for simultaneous joins (NFR-02). |
 | `tickets` | `user_id` | `integer` | `NOT NULL REFERENCES users(id) ON DELETE RESTRICT` | Connects a ticket to its customer; protects tickets if a user deletion is attempted (FR-01). |
