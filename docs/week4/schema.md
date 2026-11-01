@@ -55,11 +55,12 @@ Several requirements reuse the same tables and columns. In particular, account t
 | `tickets` | `account_type` | `varchar(20)` | `CHECK (account_type IS NULL OR account_type IN ('prepaid', 'postpaid', 'business'))` | Planned for future FR-08 and FR-09; `NULL` until the account-type feature is implemented. |
 | `tickets` | `priority_reason` | `varchar(20)` | `CHECK (priority_reason IS NULL OR priority_reason IN ('senior citizen', 'PWD', 'pregnant'))` | Planned for future FR-10 and FR-11; `NULL` until priority requests are implemented. |
 
-**Table-level rule on `tickets`:**
+**Table-level rules:**
 
 | Rule | Definition | Why |
 | --- | --- | --- |
 | One active ticket per user | `CREATE UNIQUE INDEX unique_active_ticket_per_user ON tickets (user_id) WHERE status IN ('waiting', 'called');` |  This rule ensures a double tap, a second tab or a retry cannot give one customer two places in line, so each customer can have only one active ticket at a time. Finished tickets (served, no-show, left) are not counted, so a customer can join again later. |
+| Prevent case-insensitive duplicate service names | `UNIQUE INDEX unique_service_name_ci ON lower(name)` | prevents duplicate service names regardless of capitalization.` |
 
 ## Part 2d — Draw the ERD
 

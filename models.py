@@ -3,7 +3,7 @@ from datetime import datetime
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import (
     BigInteger, CheckConstraint, DateTime, ForeignKey, Identity, Index,
-    String, func, text,
+    String, func, text, true
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -46,10 +46,13 @@ class Service(db.Model):
 
     id: Mapped[int] = mapped_column(Identity(always=True), primary_key=True)
     name: Mapped[str] = mapped_column(String(60), unique=True)
-    is_active: Mapped[bool] = mapped_column(default=True, server_default="true")
+    is_active: Mapped[bool] = mapped_column(default=True, server_default=true())
 
     tickets: Mapped[list["Ticket"]] = relationship(back_populates="service")
 
+    __table_args__ = (
+        Index("unique_service_name_ci", func.lower(name), unique=True),
+    )
 
 class Ticket(db.Model):
     __tablename__ = "tickets"

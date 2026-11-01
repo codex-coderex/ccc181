@@ -59,6 +59,14 @@ This prevents waiting tickets from containing call information. Other ticket sta
 
 **Change:** Added a partial unique index on `tickets.user_id` that applies only when `status IN ('waiting', 'called')`. This prevents the same user record from having multiple active tickets simultaneously while still allowing new tickets after previous ones are served, marked no-show, or left. The trade-off is that one customer cannot hold two active tickets at the same time, for example for two different services. I accepted this because my persona comes in with one problem per visit, and it keeps the position count accurate. If this becomes a problem, the index can be changed to `(user_id, service_id)` in a later migration.
 
+## Entry 7: Preventing duplicate service names regardless of capitalization
+
+**Works well:** The `services.name` column already has a `UNIQUE` constraint that prevents services with exactly the same name from being added.
+
+**Problem:** The constraint is case-sensitive, so names like "Line Activation" and "line activation" are considered different. This allows duplicate services to appear in the list. Found by **question 4 (bad data)**.
+
+**Change:** I added a unique index on `lower(name)` to prevent duplicate service names regardless of capitalization. The original capitalization is preserved, but PostgreSQL now rejects names that differ only in letter case.
+
 ## Review Summary
 
 | Question | Result |
@@ -66,7 +74,7 @@ This prevents waiting tickets from containing call information. Other ticket sta
 | 1. Coverage | Every data-storing functional requirement has a corresponding table, column, or planned field. The schema supports the personas' main tasks. `users.role` separates customers and staff. |
 | 2. One fact in one place | Customer information is stored in `users`, service information in `services`, and ticket-specific information in `tickets`. Service names and customer details are not duplicated across tickets. |
 | 3. Facts, not results | Queue position and waiting duration are calculated instead of stored (Entry 1). |
-| 4. Bad data | Added checks for blank names and malformed emails (Entry 3), waiting tickets with call information (Entry 4), and duplicate active tickets (Entry 6). Existing constraints also reject invalid ticket statuses. |
+| 4. Bad data | Added checks for blank names and malformed emails (Entry 3), waiting tickets with call information (Entry 4), duplicate active tickets (Entry 6), and case-insensitive duplicate service names (Entry 7). Existing constraints also reject invalid ticket statuses. |
 | 5. Deletes | Both foreign keys use `ON DELETE RESTRICT` to preserve ticket relationships and historical records (Entry 2). |
 | 6. Types | Timestamps use `timestamptz`, `is_active` uses `boolean`, and phone numbers use `varchar` to preserve their leading zero. |
 

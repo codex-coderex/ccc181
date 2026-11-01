@@ -4,13 +4,20 @@
 {% block content %}
 {% macro post_btn(url, label, cls, aria, disabled=false, confirm=none) %}
   <form method="post" action="{{ url }}"
-        {% if confirm %}onsubmit='return confirm({{ confirm|tojson }})'{% endif %}>
+        {% if confirm %}data-confirm="{{ confirm }}"{% endif %}>
     <button type="submit" class="btn {{ cls }} w-100" aria-label="{{ aria }}"
             {% if disabled %}disabled{% endif %}>{{ label }}</button>
   </form>
 {% endmacro %}
 
-<h1 class="visually-hidden">Staff dashboard</h1>
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h1 class="h3 mb-0">Staff Dashboard</h1>
+
+  <a href="{{ url_for('services_list') }}"
+     class="btn btn-outline-primary">
+    Manage Services
+  </a>
+</div>
 
 <!-- Currently serving -->
 <section class="card staff-card mb-4" aria-labelledby="serving-title">
@@ -124,6 +131,11 @@
                                 'No-show', 'btn-sm btn-outline-danger text-uppercase',
                                 'Mark ticket %d as no-show'|format(t.id),
                                 confirm='Mark ticket #%d as no-show?'|format(t.id)) }}
+                    {{ post_btn(url_for('delete_ticket', ticket_id=t.id),
+                                'Delete',
+                                'btn-sm btn-outline-danger text-uppercase',
+                                'Delete ticket %d'|format(t.id),
+                                confirm='Delete ticket #%d? This cannot be undone.'|format(t.id)) }}
                 </div>
                </td>
             </tr>
@@ -153,6 +165,11 @@
                     'No-show', 'btn-sm btn-outline-danger',
                     'Mark ticket %d as no-show'|format(t.id),
                     confirm='Mark ticket #%d as no-show?'|format(t.id)) }}
+        {{ post_btn(url_for('delete_ticket', ticket_id=t.id),
+                    'Delete',
+                    'btn-sm btn-outline-danger',
+                    'Delete ticket %d'|format(t.id),
+                    confirm='Delete ticket #%d? This cannot be undone.'|format(t.id)) }}
        </div>
     </li>
     {% else %}
