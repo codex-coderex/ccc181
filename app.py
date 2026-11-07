@@ -283,7 +283,9 @@ def staff_queue_state():
         ]
 
     serving = db.session.scalar(
-        db.select(Ticket).where(Ticket.status == "called")
+        db.select(Ticket)
+        .where(Ticket.status == "called")
+        .order_by(Ticket.created_at, Ticket.id)
     )
 
     return {

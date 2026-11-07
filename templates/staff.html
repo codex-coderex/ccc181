@@ -188,7 +188,6 @@
      data-state="{{ (
        waiting | map(attribute='id') | list,
        serving.id if serving else none,
-       total_waiting
      ) | tojson }}"
      hidden>
   </div>
